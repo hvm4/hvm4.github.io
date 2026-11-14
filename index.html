@@ -1,0 +1,3498 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Examen — Gráficos por Computador</title>
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS Y TEMAS (MODO CLARO Y MODO OSCURO ACADÉMICO)
+       ========================================================================== */
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+      --bg-app: #f1f5f9;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --bg-header: rgba(255, 255, 255, 0.92);
+
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-soft: #eef2ff;
+      --primary-border: #c7d2fe;
+      --primary-text: #3730a3;
+
+      --emerald: #10b981;
+      --emerald-dark: #059669;
+      --emerald-soft: #ecfdf5;
+      --emerald-border: #a7f3d0;
+      --emerald-text: #065f46;
+
+      --coral: #ef4444;
+      --coral-dark: #dc2626;
+      --coral-soft: #fef2f2;
+      --coral-border: #fecaca;
+      --coral-text: #991b1b;
+
+      --amber: #f59e0b;
+      --amber-dark: #d97706;
+      --amber-soft: #fffbeb;
+      --amber-border: #fde68a;
+      --amber-text: #92400e;
+
+      --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+      --shadow-lg: 0 12px 28px -5px rgba(15, 23, 42, 0.09), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --radius-full: 9999px;
+    }
+
+    [data-theme="dark"] {
+      --bg-app: #090d16;
+      --bg-surface: #111827;
+      --bg-surface-alt: #1e293b;
+      --bg-hover: #1f2937;
+      --bg-header: rgba(17, 24, 39, 0.92);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+
+      --border-color: #1f2937;
+      --border-strong: #334155;
+
+      --primary: #6366f1;
+      --primary-hover: #818cf8;
+      --primary-soft: rgba(99, 102, 241, 0.16);
+      --primary-border: rgba(99, 102, 241, 0.38);
+      --primary-text: #c7d2fe;
+
+      --emerald: #10b981;
+      --emerald-dark: #34d399;
+      --emerald-soft: rgba(16, 185, 129, 0.14);
+      --emerald-border: rgba(16, 185, 129, 0.4);
+      --emerald-text: #6ee7b7;
+
+      --coral: #ef4444;
+      --coral-dark: #f87171;
+      --coral-soft: rgba(239, 68, 68, 0.14);
+      --coral-border: rgba(239, 68, 68, 0.4);
+      --coral-text: #fca5a5;
+
+      --amber: #f59e0b;
+      --amber-dark: #fbbf24;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --amber-border: rgba(245, 158, 11, 0.4);
+      --amber-text: #fcd34d;
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+      --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 15px 30px -5px rgba(0, 0, 0, 0.6);
+    }
+
+    /* ==========================================================================
+       2. RESET Y ESTRUCTURA GLOBAL
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    button, select {
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       3. BARRA SUPERIOR (HEADER)
+       ========================================================================== */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--bg-header);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      color: inherit;
+      user-select: none;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* ==========================================================================
+       4. BOTONES Y CONTROLES DE FORMULARIO
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.86rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: all 0.16s ease;
+      user-select: none;
+      min-height: 40px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.24);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-hover);
+    }
+
+    .btn-emerald {
+      background: var(--emerald);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.24);
+    }
+
+    .btn-emerald:hover:not(:disabled) {
+      background: var(--emerald-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-amber {
+      background: var(--amber);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.24);
+    }
+
+    .btn-amber:hover:not(:disabled) {
+      background: var(--amber-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      color: var(--coral);
+      border-color: var(--coral-border);
+    }
+
+    .btn-danger-outline:hover:not(:disabled) {
+      background: var(--coral-soft);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    .select-control {
+      width: 100%;
+      padding: 0.58rem 0.85rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background-color: var(--bg-surface-alt);
+      color: var(--text-primary);
+      font-size: 0.84rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .select-control:focus {
+      border-color: var(--primary);
+    }
+
+    /* ==========================================================================
+       5. CONTENEDOR PRINCIPAL Y ANIMACIONES
+       ========================================================================== */
+    .main-container {
+      flex: 1;
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeSlideUp 0.26s ease-out forwards;
+    }
+
+    /* ==========================================================================
+       6. DASHBOARD PRINCIPAL
+       ========================================================================== */
+    .resume-banner {
+      background: var(--amber-soft);
+      border: 1px solid var(--amber-border);
+      color: var(--amber-text);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .hero-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #4338ca 100%);
+      color: #ffffff;
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      padding: 0.3rem 0.8rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.85rem;
+    }
+
+    .hero-title {
+      font-size: clamp(1.45rem, 3vw, 2.1rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-desc {
+      max-width: 720px;
+      color: #e0e7ff;
+      font-size: 0.94rem;
+      line-height: 1.6;
+    }
+
+    .formula-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1.15rem;
+    }
+
+    .formula-pill {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f8fafc;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 0.6rem;
+    }
+
+    .metric-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .section-heading {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      letter-spacing: -0.015em;
+    }
+
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2.25rem;
+    }
+
+    .mode-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.45rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.15rem;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--border-strong);
+    }
+
+    .mode-card.featured {
+      border: 2px solid var(--primary);
+      background: linear-gradient(180deg, var(--primary-soft) 0%, var(--bg-surface) 38%);
+    }
+
+    .badge-new {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #ffffff;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-full);
+      box-shadow: 0 3px 10px rgba(79, 70, 229, 0.35);
+    }
+
+    .mode-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .mode-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+      margin-bottom: 0.5rem;
+    }
+
+    .mode-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 0.4rem;
+      line-height: 1.3;
+    }
+
+    .mode-desc {
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .mode-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    .dashboard-bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .topic-progress-item {
+      margin-bottom: 1rem;
+    }
+
+    .topic-progress-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .topic-progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.81rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      gap: 0.5rem;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-surface-alt);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.4s ease;
+    }
+
+    /* ==========================================================================
+       7. VISTA DE EXAMEN ACTIVO
+       ========================================================================== */
+    .exam-layout {
+      display: grid;
+      grid-template-columns: 1fr 310px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 960px) {
+      .exam-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .exam-topbar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .live-scoreboard {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .score-chip {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface-alt);
+    }
+
+    .score-chip.ok {
+      background: var(--emerald-soft);
+      color: var(--emerald-text);
+      border-color: var(--emerald-border);
+    }
+
+    .score-chip.err {
+      background: var(--coral-soft);
+      color: var(--coral-text);
+      border-color: var(--coral-border);
+    }
+
+    .score-chip.pts {
+      background: var(--primary-soft);
+      color: var(--primary-text);
+      border-color: var(--primary-border);
+    }
+
+    .timer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius-md);
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-strong);
+    }
+
+    .timer-badge.danger {
+      background: var(--coral-soft);
+      color: var(--coral-text);
+      border-color: var(--coral-border);
+    }
+
+    .question-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 600px) {
+      .question-card {
+        padding: 1.25rem;
+      }
+    }
+
+    .question-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .topic-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-full);
+      background: var(--primary-soft);
+      color: var(--primary-text);
+      border: 1px solid var(--primary-border);
+    }
+
+    .doubt-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-md);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface-alt);
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .doubt-btn.active {
+      background: var(--amber-soft);
+      color: var(--amber-text);
+      border-color: var(--amber-border);
+    }
+
+    .question-text {
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.5;
+      margin-bottom: 1.35rem;
+      color: var(--text-primary);
+    }
+
+    .instant-feedback-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 1.15rem;
+      animation: fadeSlideUp 0.2s ease-out;
+    }
+
+    .instant-feedback-banner.correct {
+      background: var(--emerald-soft);
+      color: var(--emerald-text);
+      border: 1px solid var(--emerald-border);
+    }
+
+    .instant-feedback-banner.incorrect {
+      background: var(--coral-soft);
+      color: var(--coral-text);
+      border: 1px solid var(--coral-border);
+    }
+
+    .instant-feedback-banner.blank {
+      background: var(--bg-surface-alt);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-strong);
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+      padding: 0.95rem 1.1rem;
+      border-radius: var(--radius-md);
+      border: 2px solid var(--border-color);
+      background: var(--bg-surface-alt);
+      cursor: pointer;
+      transition: all 0.16s ease;
+      position: relative;
+    }
+
+    .option-item:hover:not(.locked) {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      transform: translateX(2px);
+    }
+
+    .option-item.selected:not(.locked) {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .option-item.locked {
+      cursor: default;
+    }
+
+    .option-item.state-correct {
+      border-color: var(--emerald) !important;
+      background: var(--emerald-soft) !important;
+      color: var(--emerald-text);
+    }
+
+    .option-item.state-incorrect {
+      border-color: var(--coral) !important;
+      background: var(--coral-soft) !important;
+      color: var(--coral-text);
+    }
+
+    .option-item.state-dimmed {
+      opacity: 0.65;
+    }
+
+    .option-letter {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.82rem;
+      flex-shrink: 0;
+      color: var(--text-primary);
+    }
+
+    .option-item.selected:not(.locked) .option-letter {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .option-item.state-correct .option-letter {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #ffffff;
+    }
+
+    .option-item.state-incorrect .option-letter {
+      background: var(--coral);
+      border-color: var(--coral);
+      color: #ffffff;
+    }
+
+    .option-content {
+      flex: 1;
+      font-size: 0.93rem;
+      line-height: 1.5;
+      padding-top: 0.15rem;
+    }
+
+    .option-status-icon {
+      font-weight: 800;
+      font-size: 0.86rem;
+      padding-top: 0.18rem;
+      flex-shrink: 0;
+    }
+
+    .explanation-box {
+      margin-top: 1.35rem;
+      padding: 1.15rem 1.25rem;
+      border-radius: var(--radius-md);
+      background: var(--primary-soft);
+      border: 1px solid var(--primary-border);
+      border-left: 4px solid var(--primary);
+      animation: fadeSlideUp 0.25s ease-out;
+    }
+
+    .explanation-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--primary-text);
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .explanation-body {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    .question-footer {
+      margin-top: 1.5rem;
+      padding-top: 1.15rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .nav-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .sidebar-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      position: sticky;
+      top: 5rem;
+    }
+
+    .sidebar-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin-bottom: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+    }
+
+    .nav-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface-alt);
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.15s ease;
+    }
+
+    .nav-cell:hover {
+      border-color: var(--primary);
+    }
+
+    .nav-cell.current {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 1px;
+      font-weight: 900;
+    }
+
+    .nav-cell.answered-std {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    .nav-cell.cell-correct {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #ffffff;
+    }
+
+    .nav-cell.cell-incorrect {
+      background: var(--coral);
+      border-color: var(--coral);
+      color: #ffffff;
+    }
+
+    .nav-cell.cell-blank-locked {
+      background: var(--border-strong);
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+
+    .nav-cell.has-doubt::after {
+      content: "";
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--amber);
+      border: 1.5px solid var(--bg-surface);
+    }
+
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .kbd-hint {
+      margin-top: 0.85rem;
+      padding: 0.65rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    kbd {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      padding: 0.05rem 0.35rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       8. RESULTADOS FINALES Y REVISIÓN
+       ========================================================================== */
+    .results-hero {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 1.75rem;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 255px 1fr;
+      gap: 1.5rem;
+      align-items: center;
+      margin: 1.25rem 0;
+    }
+
+    @media (max-width: 740px) {
+      .results-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .final-score-box {
+      background: var(--bg-surface-alt);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .final-score-num {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.04em;
+    }
+
+    .breakdown-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .mini-stat-box {
+      padding: 0.95rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface-alt);
+      text-align: center;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.15rem;
+    }
+
+    .filter-btn {
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       9. MODAL Y TOASTS
+       ========================================================================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(4px);
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.hidden {
+      display: none;
+    }
+
+    .modal-dialog {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      max-width: 440px;
+      width: 100%;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      animation: fadeSlideUp 0.2s ease-out;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 1.35rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.65rem;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 340px;
+    }
+
+    .toast {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-left: 4px solid var(--primary);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      animation: fadeSlideUp 0.2s ease-out;
+    }
+
+    .history-table-wrap {
+      overflow-x: auto;
+    }
+
+    table.history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      text-align: left;
+    }
+
+    table.history-table th {
+      padding: 0.65rem 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    table.history-table td {
+      padding: 0.7rem 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CABECERA PRINCIPAL -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand" onclick="app.showDashboard()" role="button" tabindex="0" aria-label="Volver al menú principal">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">Gráficos por Computador</div>
+          <div class="brand-subtitle">Simulador de Exámenes Universitarios · Banco Equilibrado</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="app.showDashboard()" title="Ir al menú principal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          <span>Menú Principal</span>
+        </button>
+
+        <button class="btn btn-secondary" id="themeToggleBtn" onclick="app.toggleTheme()" title="Cambiar modo claro/oscuro">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Modo Oscuro</span>
+        </button>
+
+        <button class="btn btn-danger-outline" onclick="app.confirmResetStats()" title="Reiniciar estadísticas e historial">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO DINÁMICO -->
+  <main id="appRoot" class="main-container"></main>
+
+  <!-- MODAL PERSONALIZADO -->
+  <div id="customModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <h3 id="modalTitle" class="modal-title">Confirmar acción</h3>
+      <div id="modalBody" class="modal-body">¿Estás seguro?</div>
+      <div class="modal-actions">
+        <button id="modalCancel" class="btn btn-secondary">Cancelar</button>
+        <button id="modalConfirm" class="btn btn-primary">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS DE NOTIFICACIÓN -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script>
+    /* ============================================================================
+       1. DEFINICIÓN DE TEMAS Y PESOS DE EXAMEN OFICIAL PONDERADO (SUMA = 20)
+       ============================================================================ */
+    const TOPICS = {
+      1: "Tema 1: Pipeline Gráfico y Sistemas de Coordenadas",
+      2: "Tema 2: Primitivas Geométricas, Rasterización y Recorte",
+      3: "Tema 3: Transformaciones 2D/3D, Proyecciones y Cámaras",
+      4: "Tema 4: Visibilidad, Iluminación, Sombreado y Texturas",
+      5: "Tema 5: Curvas, Superficies Paramétricas y Gráficos Avanzados"
+    };
+
+    // Ponderación oficial realista de 20 preguntas distribuida por peso de tema
+    const WEIGHTED_QUOTAS = {
+      1: 3,
+      2: 4,
+      3: 5,
+      4: 5,
+      5: 3
+    };
+
+    /* ============================================================================
+       2. BANCO DE 60 PREGUNTAS TÉCNICAS SIN SESGO DE LONGITUD NI POSICIÓN
+          - 12 preguntas por tema (60 en total)
+          - Índices `correct` distribuidos equitativamente: 15 en 0, 15 en 1, 15 en 2, 15 en 3
+          - Las 4 opciones de cada pregunta tienen longitudes homogéneas, paralelismo
+            gramatical y rigor técnico equivalente, evitando que la correcta destaque.
+       ============================================================================ */
+    const QUESTIONS_DB = [
+      // =========================================================================
+      // TEMA 1: Introducción, Pipeline Gráfico y Sistemas de Coordenadas (IDs 1-12)
+      // =========================================================================
+      {
+        id: 1,
+        topic: 1,
+        question: "¿Cuál es la secuencia correcta de etapas en un pipeline gráfico moderno programable?",
+        options: [
+          "Rasterización → Vertex Shader → Input Assembler → Fragment Shader → Output Merger",
+          "Input Assembler → Fragment Shader → Rasterización → Vertex Shader → Output Merger",
+          "Input Assembler → Vertex Shader → Rasterización → Fragment Shader → Output Merger",
+          "Vertex Shader → Input Assembler → Output Merger → Rasterización → Fragment Shader"
+        ],
+        correct: 2,
+        explanation: "El ensamblador de entrada (Input Assembler) agrupa vértices, el Vertex Shader los transforma a Clip Space, la Rasterización genera fragmentos e interpola atributos, el Fragment Shader calcula el color y el Output Merger aplica pruebas de profundidad y mezcla."
+      },
+      {
+        id: 2,
+        topic: 1,
+        question: "¿Cuál es la responsabilidad principal del Vertex Shader en la ejecución de la GPU?",
+        options: [
+          "Transformar cada vértice de entrada hasta Clip Space y emitir sus atributos interpolables.",
+          "Discretizar cada triángulo proyectado en fragmentos candidatos y calcular sus baricéntricas.",
+          "Evaluar la prueba de profundidad contra el Z-buffer antes de escribir en el framebuffer.",
+          "Combinar el color emitido por el fragmento con el contenido previo del búfer de color."
+        ],
+        correct: 0,
+        explanation: "El Vertex Shader se ejecuta una vez por vértice de entrada. Su salida obligatoria es gl_Position en coordenadas homogéneas de Clip Space, además de preparar los atributos (normales, UV) que interpolará el rasterizador."
+      },
+      {
+        id: 3,
+        topic: 1,
+        question: "¿Qué operación distingue a un punto espacial de un vector dirección en coordenadas homogéneas 4D?",
+        options: [
+          "Los puntos fijan w = 0 para anular traslaciones y los vectores fijan w = 1 para desplazarse.",
+          "Los puntos usan w = -1 en espacio local y los vectores usan w = +1 en espacio de pantalla.",
+          "Ambos mantienen w = 0 constantemente para evitar singularidades al dividir por profundidad.",
+          "Los puntos usan w = 1 para recibir traslaciones y los vectores usan w = 0 para ignorarlas."
+        ],
+        correct: 3,
+        explanation: "En coordenadas homogéneas [x, y, z, w]ᵀ, multiplicar una matriz afín 4×4 por un vector con w = 0 anula la cuarta columna de traslación, conservando invariante la dirección y magnitud del vector."
+      },
+      {
+        id: 4,
+        topic: 1,
+        question: "¿Qué proceso realiza la GPU para pasar desde Clip Space (x_c, y_c, z_c, w_c) hasta coordenadas NDC?",
+        options: [
+          "Multiplica las tres primeras componentes por el determinante de la matriz de proyección.",
+          "Divide las componentes x_c, y_c y z_c entre la coordenada homogénea w_c tras el recorte.",
+          "Resta la posición de la cámara en espacio mundo y normaliza el vector resultante a unidad.",
+          "Aplica la transformación afín del viewport directamente sobre los vértices sin recortar."
+        ],
+        correct: 1,
+        explanation: "Una vez recortadas las primitivas contra el volumen de Clip Space, el hardware ejecuta la división perspectiva dividiendo (x_c, y_c, z_c) entre w_c para obtener Coordenadas de Dispositivo Normalizadas (NDC) en [-1, 1]."
+      },
+      {
+        id: 5,
+        topic: 1,
+        question: "¿Cuál es la función específica del Stencil Buffer dentro de la arquitectura del Framebuffer?",
+        options: [
+          "Almacenar los niveles prefiltrados de mipmap de las texturas vinculadas al shader activo.",
+          "Guardar la distancia lineal desde cada vértice hasta la fuente luminosa más cercana.",
+          "Actuar como máscara entera por píxel para habilitar o descartar escrituras en zonas concretas.",
+          "Registrar el vector normal de cada superficie visible para etapas de posprocesado diferido."
+        ],
+        correct: 2,
+        explanation: "El Stencil Buffer almacena un valor entero (habitualmente de 8 bits) por píxel que se compara contra una referencia programable, permitiendo implementar espejos planos, portales, siluetas y volúmenes de sombra."
+      },
+      {
+        id: 6,
+        topic: 1,
+        question: "¿Qué problema visual evita el intercambio sincronizado entre Front Buffer y Back Buffer (Double Buffering)?",
+        options: [
+          "La pérdida de precisión numérica en polígonos coplanares situados lejos del plano cercano.",
+          "El aliasing geométrico provocado por bordes diagonales de alto contraste sobre la rejilla.",
+          "La inversión de orientación de caras cuando una malla sufre un escalado axial negativo.",
+          "El parpadeo y la visualización de fotogramas incompletos mientras la GPU sigue rasterizando."
+        ],
+        correct: 3,
+        explanation: "Mediante doble búfer, el monitor lee continuamente el Front Buffer estable mientras la GPU renderiza la escena completa en el Back Buffer oculto, intercambiando ambos punteros al finalizar el cuadro."
+      },
+      {
+        id: 7,
+        topic: 1,
+        question: "¿Qué artefacto aparece al intercambiar los búferes de imagen en mitad del barrido vertical del monitor?",
+        options: [
+          "Screen Tearing, mostrando una fractura horizontal donde coexisten dos fotogramas distintos.",
+          "Z-Fighting, provocando parpadeo alterno entre dos triángulos situados a igual profundidad.",
+          "Peter Panning, generando un desplazamiento visible entre el objeto y su sombra proyectada.",
+          "Gimbal Lock, bloqueando un grado de libertad al alinear dos ejes de rotación consecutivos."
+        ],
+        correct: 0,
+        explanation: "Sin sincronización vertical (V-Sync), el cambio de puntero entre Back Buffer y Front Buffer ocurre mientras el controlador de pantalla envía líneas al monitor, mezclando la mitad superior de un cuadro con la inferior del siguiente."
+      },
+      {
+        id: 8,
+        topic: 1,
+        question: "¿Qué ventaja aporta el uso de primitivas Triangle Strip frente a una lista independiente Triangle List?",
+        options: [
+          "Garantiza que todos los triángulos generados mantengan exactamente la misma área superficial.",
+          "Define N triángulos conectados usando N + 2 vértices en lugar de 3N, ahorrando ancho de banda.",
+          "Elimina la necesidad de realizar pruebas de profundidad en superficies convexas cerradas.",
+          "Permite interpolar coordenadas de textura sin aplicar corrección hiperbólica perspectiva."
+        ],
+        correct: 1,
+        explanation: "En un Triangle Strip cada nuevo vértice reutiliza los dos vértices anteriores para formar un triángulo adicional, reduciendo el tráfico de memoria y las ejecuciones del Vertex Shader."
+      },
+      {
+        id: 9,
+        topic: 1,
+        question: "¿Cuánta memoria ocupa un framebuffer Full HD (1920 × 1080) con color RGBA8 y profundidad D24S8?",
+        options: [
+          "Ocupa exactamente 8,29 MiB al emplear 4 bytes combinados por cada píxel de la pantalla.",
+          "Ocupa aproximadamente 31,64 MiB al duplicar los canales de color en coma flotante de 16 bits.",
+          "Ocupa exactamente 4,15 MiB al comprimir la profundidad en bloques de 16 bits sin estarcido.",
+          "Ocupa aproximadamente 15,82 MiB al requerir 8 bytes totales por cada uno de sus píxeles."
+        ],
+        correct: 3,
+        explanation: "1920 × 1080 = 2.073.600 píxeles. Cada píxel usa 4 bytes para RGBA8 (32 bits) y 4 bytes para D24S8 (24 bits de profundidad + 8 bits de stencil) = 8 bytes/píxel → 16.588.800 bytes ≈ 15,82 MiB."
+      },
+      {
+        id: 10,
+        topic: 1,
+        question: "¿Qué etapa fija del pipeline transforma coordenadas NDC [-1, 1] a coordenadas de píxel en ventana?",
+        options: [
+          "La etapa de ensamblado de primitivas mediante la matriz inversa de vista de la cámara.",
+          "La etapa de recorte homogéneo contra los seis planos del volumen canónico de visión.",
+          "La transformación de Viewport definida por el origen, anchura, altura y rango de profundidad.",
+          "La etapa de mezcla alfa (Alpha Blending) ejecutada dentro del Output Merger de la GPU."
+        ],
+        correct: 2,
+        explanation: "La transformación de Viewport escala y traslada las coordenadas X e Y desde [-1, 1] al rectángulo de píxeles [x, x+width] × [y, y+height] y mapea Z al rango [zNear, zFar] del Z-buffer."
+      },
+      {
+        id: 11,
+        topic: 1,
+        question: "¿Qué condición invalida la optimización hardware Early-Z Testing en un Fragment Shader moderno?",
+        options: [
+          "Muestrear una textura bidimensional usando coordenadas UV interpoladas por el rasterizador.",
+          "Modificar explícitamente la profundidad gl_FragDepth o descartar fragmentos mediante discard.",
+          "Multiplicar un vector normal normalizado por el producto escalar de una luz direccional.",
+          "Leer variables uniformes de matriz desde un búfer constante vinculado al pipeline gráfico."
+        ],
+        correct: 1,
+        explanation: "Early-Z descarta fragmentos ocluidos antes del Fragment Shader; sin embargo, si el shader sobrescribe gl_FragDepth o usa discard, la GPU no conoce de antemano la profundidad final o la cobertura del fragmento."
+      },
+      {
+        id: 12,
+        topic: 1,
+        question: "¿En qué espacio de coordenadas se realiza el recorte (Clipping) de primitivas contra el frustum?",
+        options: [
+          "En Clip Space homogéneo antes de efectuar la división perspectiva por la componente w_c.",
+          "En Espacio Local del objeto antes de aplicar la matriz de transformación del modelo.",
+          "En Espacio de Pantalla en píxeles enteros tras completar la rasterización del triángulo.",
+          "En Espacio Tangente una vez calculada la base ortonormal de vectores TBN por vértice."
+        ],
+        correct: 0,
+        explanation: "El recorte se ejecuta en Clip Space comprobando -w_c ≤ x_c, y_c, z_c ≤ w_c antes de dividir por w_c, evitando así divisiones por cero o inversiones de signo para vértices detrás del plano de cámara (w_c ≤ 0)."
+      },
+
+      // =========================================================================
+      // TEMA 2: Primitivas Geométricas, Rasterización y Recorte (IDs 13-24)
+      // =========================================================================
+      {
+        id: 13,
+        topic: 2,
+        question: "¿Cuál es la principal ventaja computacional del algoritmo de trazado de líneas de Bresenham?",
+        options: [
+          "Evalúa funciones trigonométricas inversas para suavizar los extremos de cada segmento.",
+          "Utiliza exclusivamente aritmética entera de sumas y desplazamientos sin divisiones ni flotantes.",
+          "Calcula el área exacta de intersección entre el segmento continuo y cada celda cuadrada.",
+          "Subdivide recursivamente el segmento hasta alcanzar precisión subpíxel en coma flotante."
+        ],
+        correct: 1,
+        explanation: "Bresenham mantiene una variable de decisión entera que representa el signo de la distancia implícita al punto medio entre dos píxeles candidatos, eliminando por completo las operaciones en coma flotante y redondeos."
+      },
+      {
+        id: 14,
+        topic: 2,
+        question: "¿En qué propiedad geométrica se basa el algoritmo del Punto Medio (Midpoint) para rasterizar círculos?",
+        options: [
+          "Muestrea ángulos uniformes Δθ mediante senos y cosenos incrementales en cada cuadrante.",
+          "Resuelve la raíz cuadrada de R² - x² en cada columna entera del primer cuadrante.",
+          "Subdivide la circunferencia en 64 cuerdas rectas proyectadas sobre la rejilla discreta.",
+          "Aprovecha la simetría de 8 octantes y evalúa el signo de f(x, y) = x² + y² - R² en el punto medio."
+        ],
+        correct: 3,
+        explanation: "Gracias a la simetría óctuple del círculo centrado en el origen, basta calcular un octante (45°), evaluando si el punto medio entre el píxel Este (E) y Sureste (SE) cae dentro o fuera de la circunferencia."
+      },
+      {
+        id: 15,
+        topic: 2,
+        question: "En el recorte de segmentos 2D de Cohen-Sutherland, ¿cuándo se acepta trivialmente un segmento?",
+        options: [
+          "Cuando la operación lógica OR bit a bit de los outcodes de ambos extremos es igual a 0000.",
+          "Cuando la operación lógica AND bit a bit de los outcodes de ambos extremos es distinta de 0000.",
+          "Cuando ambos extremos comparten exactamente el mismo bit activo en la región superior.",
+          "Cuando la pendiente del segmento es unitaria y cruza el centro de la ventana de recorte."
+        ],
+        correct: 0,
+        explanation: "Cada extremo recibe un código de 4 bits (Top, Bottom, Right, Left). Si outcode1 | outcode2 == 0, ambos puntos tienen código 0000 y están completamente dentro del rectángulo; si outcode1 & outcode2 != 0, se rechaza trivialmente."
+      },
+      {
+        id: 16,
+        topic: 2,
+        question: "¿Qué diferencia fundamental ofrece el algoritmo de Cyrus-Beck frente al de Cohen-Sutherland?",
+        options: [
+          "Permite recortar segmentos únicamente contra rectángulos alineados con los ejes coordenados.",
+          "Utiliza tablas de búsqueda de outcodes binarios para evitar cualquier producto escalar.",
+          "Recorta segmentos paramétricos contra cualquier polígono convexo arbitario usando productos escalares.",
+          "Convierte polígonos cóncavos en abanicos de triángulos antes de calcular sus intersecciones."
+        ],
+        correct: 2,
+        explanation: "Cyrus-Beck parametriza el segmento P(t) = P_0 + t(P_1 - P_0) y calcula los parámetros t de entrada (PE) y salida (PL) respecto a las normales de las aristas de cualquier región convexa."
+      },
+      {
+        id: 17,
+        topic: 2,
+        question: "¿Cómo procede el algoritmo de Sutherland-Hodgman para recortar un polígono contra una ventana convexa?",
+        options: [
+          "Triangula primero el polígono mediante corte de orejas y recorta cada triángulo por separado.",
+          "Ordena todos los vértices por ángulo polar respecto al centroide y elimina los exteriores.",
+          "Subdivide el polígono en bandas horizontales scan-line antes de evaluar los bordes laterales.",
+          "Canaliza la lista de vértices secuencialmente a través de cada plano o arista de recorte."
+        ],
+        correct: 3,
+        explanation: "Sutherland-Hodgman funciona como un pipeline de recortadores: la lista de vértices resultante de recortar contra una arista de la ventana pasa como entrada al recortador de la siguiente arista, evaluando 4 casos (dentro-dentro, dentro-fuera, fuera-fuera, fuera-dentro)."
+      },
+      {
+        id: 18,
+        topic: 2,
+        question: "En el algoritmo de relleno de polígonos por Scan-Line, ¿qué almacena la Tabla de Aristas Activas (AET)?",
+        options: [
+          "Todas las aristas del polígono ordenadas según su coordenada X máxima de forma descendente.",
+          "Las aristas que intersecan la línea de barrido actual ordenadas por su intersección X creciente.",
+          "Únicamente las aristas horizontales que coinciden exactamente con el borde superior del polígono.",
+          "Los vectores normales de cada arista necesarios para interpolar el sombreado de Gouraud."
+        ],
+        correct: 1,
+        explanation: "La AET (Active Edge Table) mantiene las aristas activas en el scan-line y actual, ordenadas por su coordenada x de intersección para rellenar los tramos entre pares de intersecciones (regla par-impar) e incrementar x += 1/m en cada paso."
+      },
+      {
+        id: 19,
+        topic: 2,
+        question: "¿Qué criterio matemático emplean las GPUs modernas para rasterizar triángulos de forma paralela?",
+        options: [
+          "Trazan líneas horizontales secuenciales desde el vértice superior hasta el vértice inferior.",
+          "Subdividen cada triángulo en cuadrados de 2×2 hasta alcanzar el tamaño de un texel.",
+          "Evalúan funciones de arista lineales y coordenadas baricéntricas en bloques de fragmentos.",
+          "Proyectan rayos ortogonales desde cada centro de píxel hacia el plano del triángulo en 3D."
+        ],
+        correct: 2,
+        explanation: "Las GPUs evalúan en paralelo las tres ecuaciones implícitas de arista (edge functions) sobre bloques (tiles/quads) de píxeles; el signo indica cobertura y los valores normalizados proporcionan directamente las coordenadas baricéntricas (λ_0, λ_1, λ_2)."
+      },
+      {
+        id: 20,
+        topic: 2,
+        question: "¿Qué regla de desempate aplican los rasterizadores para evitar dibujar dos veces un píxel en aristas compartidas?",
+        options: [
+          "La regla Top-Left, que solo incluye píxeles exactamente sobre aristas superiores o izquierdas.",
+          "La regla Bottom-Right, que asigna los píxeles fronterizos al triángulo con mayor profundidad Z.",
+          "La regla del Centroide, que descarta cualquier píxel cuyo centro toque una arista del polígono.",
+          "La regla de Paridad, que alterna la inclusión de aristas según el índice par o impar del vértice."
+        ],
+        correct: 0,
+        explanation: "La regla Top-Left (arista superior horizontal o arista izquierda descendente) garantiza que en mallas triangulares compartidas ningún píxel en la frontera se rasterice dos veces (evitando artefactos en blending) ni quede sin cubrir."
+      },
+      {
+        id: 21,
+        topic: 2,
+        question: "¿Cómo optimiza MSAA (Multi-Sample Anti-Aliasing) el coste computacional frente a SSAA (Super-Sampling)?",
+        options: [
+          "Aplica un filtro gaussiano 2D posprocesado sin almacenar múltiples muestras de profundidad.",
+          "Evalúa cobertura y profundidad en varias submuestras, pero ejecuta el Fragment Shader una vez.",
+          "Reduce a la mitad la resolución del búfer de color mientras mantiene el Z-buffer nativo.",
+          "Suaviza exclusivamente las texturas mediante mipmaps sin alterar los bordes geométricos."
+        ],
+        correct: 1,
+        explanation: "A diferencia de SSAA (que ejecuta el Fragment Shader en cada submuestra), MSAA evalúa la cobertura geométrica y prueba Z por submuestra pero ejecuta el Fragment Shader una sola vez por píxel cubierto, replicando ese color en las submuestras activas."
+      },
+      {
+        id: 22,
+        topic: 2,
+        question: "¿Qué representa una coordenada baricéntrica λ_i negativa al evaluar un punto P respecto a un triángulo?",
+        options: [
+          "Que el triángulo está orientado de espaldas a la cámara y debe descartarse por culling.",
+          "Que el punto P coincide exactamente con el baricentro geométrico de los tres vértices.",
+          "Que el área del triángulo proyectado en pantalla es nula por colinealidad de vértices.",
+          "Que el punto P se encuentra situado en el semiplano exterior opuesto al vértice V_i."
+        ],
+        correct: 3,
+        explanation: "Un punto P pertenece al interior de un triángulo si y solo si sus tres coordenadas baricéntricas cumplen λ_0 ≥ 0, λ_1 ≥ 0 y λ_2 ≥ 0 (con λ_0 + λ_1 + λ_2 = 1). Si alguna es negativa, el punto cae fuera de la arista opuesta."
+      },
+      {
+        id: 23,
+        topic: 2,
+        question: "¿Qué limitación presenta la técnica de relleno por inundación (Flood Fill) frente al algoritmo Scan-Line?",
+        options: [
+          "Requiere almacenar una pila o cola en memoria proporcional al área y depende del color previo.",
+          "Solo puede rellenar triángulos convexos cuyos vértices tengan coordenadas enteras pares.",
+          "No permite interpolar atributos de color ni profundidades Z a lo largo del interior.",
+          "Falla sistemáticamente cuando el polígono contiene agujeros interiores o bordes cóncavos."
+        ],
+        correct: 0,
+        explanation: "Flood Fill opera a nivel de imagen en el framebuffer partiendo de una semilla y propagándose a vecinos (4 u 8-conectados), lo que implica alto uso de pila/cola y poca coherencia de memoria frente al barrido estructurado de Scan-Line."
+      },
+      {
+        id: 24,
+        topic: 2,
+        question: "¿Qué fenómeno físico-matemático origina el aliasing (efecto escalera) al rasterizar primitivas continuas?",
+        options: [
+          "La falta de precisión en las matrices de rotación 3×3 al convertir ángulos a radianes.",
+          "El submuestreo espacial de señales de frecuencia superior al límite de Nyquist de la rejilla.",
+          "La acumulación de errores de redondeo en la división perspectiva por coordenadas homogéneas.",
+          "La saturación del canal alfa cuando se superponen más de cuatro capas semitransparentes."
+        ],
+        correct: 1,
+        explanation: "Un borde geométrico ideal contiene frecuencias espaciales infinitas; al muestrear la escena discretamente en una rejilla finita de píxeles por debajo de la frecuencia de Nyquist, las altas frecuencias se pliegan generando dientes de sierra (aliasing)."
+      },
+
+      // =========================================================================
+      // TEMA 3: Transformaciones 2D/3D, Proyecciones y Cámaras (IDs 25-36)
+      // =========================================================================
+      {
+        id: 25,
+        topic: 3,
+        question: "En convención de vectores columna (v' = M · v), ¿cuál es el orden correcto TRS de la matriz de Modelo?",
+        options: [
+          "M_model = S · R · T, aplicando traslación primero y escalado local al final del producto.",
+          "M_model = R · S · T, rotando primero alrededor del origen y escalando en espacio mundo.",
+          "M_model = T · S · R, trasladando primero el pivote y rotando posteriormente sobre los ejes.",
+          "M_model = T · R · S, escalando en espacio local, rotando en el origen y trasladando al mundo."
+        ],
+        correct: 3,
+        explanation: "Al multiplicar v' = (T · R · S) · v de derecha a izquierda, el escalado S actúa primero alineado con los ejes locales del modelo, luego R lo orienta y finalmente T lo sitúa en su posición global."
+      },
+      {
+        id: 26,
+        topic: 3,
+        question: "¿Qué matriz debe utilizarse para transformar vectores normales si la matriz M incluye escalado no uniforme?",
+        options: [
+          "La misma matriz directa M, normalizando únicamente la longitud del vector resultante.",
+          "La matriz transpuesta inversa (M⁻¹)ᵀ para preservar la ortogonalidad con los tangentes.",
+          "La matriz inversa directa M⁻¹ sin transponer para compensar el estiramiento de los ejes.",
+          "La submatriz superior izquierda 3×3 de M tras anular sus elementos fuera de la diagonal."
+        ],
+        correct: 1,
+        explanation: "Un escalado anisotrópico altera los ángulos entre vectores; para mantener n'ᵀ · t' = 0 sobre la superficie transformada se deduce algebraicamente que n' = (M⁻¹)ᵀ · n."
+      },
+      {
+        id: 27,
+        topic: 3,
+        question: "¿En qué consiste el bloqueo de cardán (Gimbal Lock) al parametrizar rotaciones 3D con ángulos de Euler?",
+        options: [
+          "La matriz de rotación se vuelve singular con determinante nulo al alcanzar 180 grados.",
+          "Los vértices de la malla invierten su signo y atraviesan el plano cercano de proyección.",
+          "Al girar 90 grados el eje intermedio, dos ejes rotacionales se alinean perdiendo un grado.",
+          "La interpolación lineal entre dos matrices ortogonales produce un escalado no uniforme."
+        ],
+        correct: 2,
+        explanation: "En una secuencia de tres rotaciones encadenadas (como Yaw-Pitch-Roll), rotar ±90° el segundo eje hace coincidir los ejes primero y tercero en el mismo plano, perdiendo un grado de libertad rotacional."
+      },
+      {
+        id: 28,
+        topic: 3,
+        question: "¿Qué ventaja principal aportan los Cuaterniones unitarios frente a los ángulos de Euler en animación 3D?",
+        options: [
+          "Evitan el bloqueo de cardán y permiten interpolar rotaciones suaves mediante SLERP.",
+          "Permiten representar traslaciones, rotaciones y cizalladuras en cuatro componentes reales.",
+          "No requieren normalización periódica tras encadenar miles de composiciones sucesivas.",
+          "Reducen a la mitad el coste de transformar un millón de vértices frente a una matriz 3×3."
+        ],
+        correct: 0,
+        explanation: "Los cuaterniones unitarios parametrizan SO(3) sin singularidades (sin Gimbal Lock) y permiten interpolación esférica lineal (SLERP) a velocidad angular constante por el arco más corto."
+      },
+      {
+        id: 29,
+        topic: 3,
+        question: "Al construir una matriz de vista LookAt(eye, target, up) mirando hacia -Z, ¿cómo se define el eje +Z local?",
+        options: [
+          "Se calcula mediante z_cam = normalize(target - eye) apuntando hacia el objetivo.",
+          "Se calcula mediante z_cam = normalize(eye - target) apuntando hacia el observador.",
+          "Se calcula mediante el producto vectorial cross(up, target) normalizado a unidad.",
+          "Se fija idéntico al vector up de entrada tras proyectarlo sobre el plano horizontal."
+        ],
+        correct: 1,
+        explanation: "En sistemas de mano derecha (como OpenGL) la cámara mira hacia su semieje -Z local, de modo que el vector base +Z apunta desde el objetivo hacia la cámara: z_cam = normalize(eye - target)."
+      },
+      {
+        id: 30,
+        topic: 3,
+        question: "¿Qué diferencia geométrica distingue una proyección ortográfica de una proyección perspectiva?",
+        options: [
+          "La proyección perspectiva conserva invariantes las longitudes y el paralelismo de rectas.",
+          "La proyección ortográfica requiere dividir las coordenadas X e Y por la profundidad Z.",
+          "La ortográfica usa rayos proyectantes paralelos sin escorzo; la perspectiva los hace converger.",
+          "La proyección perspectiva solo proyecta objetos contenidos dentro de un cubo unitario."
+        ],
+        correct: 2,
+        explanation: "En la proyección ortográfica el centro de proyección está en el infinito (rayos paralelos, sin reducción por distancia), mientras que en la perspectiva los rayos convergen en el ojo generando escorzo."
+      },
+      {
+        id: 31,
+        topic: 3,
+        question: "¿En qué volumen transforma la matriz de proyección perspectiva al tronco de pirámide (Frustum)?",
+        options: [
+          "En una esfera unitaria centrada en el origen con radio igual al plano lejano Far.",
+          "En un cilindro infinito alineado con el eje óptico negativo de la cámara virtual.",
+          "En un cono truncado cuya base mayor coincide con el plano cercano Near de recorte.",
+          "En un cubo canónico de coordenadas normalizadas (NDC) acotado entre -1 y +1."
+        ],
+        correct: 3,
+        explanation: "La transformación proyectiva deforma el frustum piramidal (definido por FOV, aspect ratio, Near y Far) en el volumen canónico de recorte (cubo NDC tras la división por w_c)."
+      },
+      {
+        id: 32,
+        topic: 3,
+        question: "¿Qué valor almacena la coordenada w_c en Clip Space tras aplicar la matriz de proyección perspectiva estándar?",
+        options: [
+          "El opuesto de la profundidad en espacio de cámara (-z_eye), proporcional a la distancia.",
+          "El valor constante 1.0 para preservar el carácter afín de las traslaciones previas.",
+          "El seno del semiángulo de apertura vertical (FOV / 2) multiplicado por el aspect ratio.",
+          "La distancia euclídea entre el plano cercano Near y el plano lejano Far del frustum."
+        ],
+        correct: 0,
+        explanation: "La cuarta fila de la matriz de proyección perspectiva estándar es [0, 0, -1, 0], por lo que w_c = -z_eye. Al dividir x_c e y_c por w_c se obtiene la reducción perspectiva inversamente proporcional a la profundidad."
+      },
+      {
+        id: 33,
+        topic: 3,
+        question: "¿Por qué la GPU debe aplicar interpolación hiperbólica (perspectiva-correcta) a las coordenadas UV?",
+        options: [
+          "Porque las coordenadas UV se almacenan siempre como enteros sin signo de 16 bits.",
+          "Porque los vértices de un triángulo proyectado pierden su orden de devanado original.",
+          "Porque la proyección perspectiva no es afín e interpolar linealmente en 2D deforma texturas.",
+          "Porque el Z-buffer almacena valores negativos que invierten el sentido del muestreo UV."
+        ],
+        correct: 2,
+        explanation: "Tras dividir por w, la variación de un atributo sobre un polígono inclinado en 3D no es lineal en pantalla. La GPU interpola linealmente (u/w, v/w) y (1/w), dividiendo ambos en cada fragmento para recuperar la UV exacta."
+      },
+      {
+        id: 34,
+        topic: 3,
+        question: "¿Cuál es la composición matricial correcta para rotar un objeto un ángulo θ alrededor de un pivote P_0?",
+        options: [
+          "M = T(P_0) · R(θ) · T(-P_0), llevando el pivote al origen, rotando y devolviéndolo.",
+          "M = T(-P_0) · R(θ) · T(P_0), trasladando hacia el pivote tras haber rotado en mundo.",
+          "M = R(θ) · T(P_0) · R(-θ), compensando el desplazamiento radial con rotación inversa.",
+          "M = T(P_0) · S(-1) · R(θ), invirtiendo primero los ejes locales antes de aplicar el giro."
+        ],
+        correct: 0,
+        explanation: "Para rotar respecto a un punto arbitrario P_0 se traslada P_0 al origen mediante T(-P_0), se aplica la rotación R(θ) alrededor del origen y se restituye la posición con T(P_0)."
+      },
+      {
+        id: 35,
+        topic: 3,
+        question: "¿Qué propiedades geométricas conserva invariantes toda transformación afín invertible en 3D?",
+        options: [
+          "Las longitudes absolutas de todos los segmentos y los ángulos internos de polígonos.",
+          "El volumen exacto de los poliedros cerrados y la ortogonalidad de sus vectores base.",
+          "La distancia de cada vértice al origen de coordenadas y el radio de esferas inscritas.",
+          "La colinealidad de puntos, el paralelismo entre rectas y las razones de distancia lineal."
+        ],
+        correct: 3,
+        explanation: "Las transformaciones afines (combinación de transformación lineal y traslación) preservan rectas, planos, paralelismo y proporciones a lo largo de una recta, mientras que solo las isometrías preservan distancias y ángulos."
+      },
+      {
+        id: 36,
+        topic: 3,
+        question: "¿Qué ocurre al aumentar excesivamente el ángulo de visión vertical (FOV) de una cámara perspectiva?",
+        options: [
+          "La proyección tiende hacia una vista ortográfica eliminando cualquier punto de fuga.",
+          "Se produce distorsión gran angular con estiramiento acusado en los bordes de pantalla.",
+          "Se reduce el volumen visible del frustum recortando los objetos cercanos a los márgenes.",
+          "Se invierte el orden de profundidad en el Z-buffer ocultando los objetos más próximos."
+        ],
+        correct: 1,
+        explanation: "Un FOV muy amplio (por ejemplo > 100°) proyecta un campo visual muy extenso sobre un plano plano de imagen, provocando deformación perspectiva extrema (efecto ojo de pez rectilíneo) hacia las esquinas."
+      },
+
+      // =========================================================================
+      // TEMA 4: Visibilidad, Iluminación, Sombreado y Texturas (IDs 37-48)
+      // =========================================================================
+      {
+        id: 37,
+        topic: 4,
+        question: "¿Por qué la precisión del Z-Buffer estándar se concentra cerca del plano Near y es muy pobre lejos?",
+        options: [
+          "Porque la proyección perspectiva mapea la profundidad según una relación hiperbólica 1/z.",
+          "Porque el Z-buffer utiliza enteros de 8 bits para distancias superiores a diez unidades.",
+          "Porque el Vertex Shader redondea las coordenadas Z a múltiplos enteros antes del recorte.",
+          "Porque el filtrado bilineal promedia las profundidades adyacentes en zonas distantes."
+        ],
+        correct: 0,
+        explanation: "La transformación proyectiva de Z tiene la forma A + B/z, concentrando la inmensa mayoría de los valores representables del Z-buffer muy cerca de Near y causando Z-fighting en objetos lejanos si Far/Near es muy grande."
+      },
+      {
+        id: 38,
+        topic: 4,
+        question: "¿En qué criterio se basa la técnica de visibilidad Back-face Culling en mallas cerradas?",
+        options: [
+          "Ordena todos los triángulos por profundidad media antes de enviarlos a la etapa de mezcla.",
+          "Compara el índice de material de cada cara contra una máscara almacenada en el Stencil.",
+          "Descarta triángulos cuya normal apunta en contra del observador o tienen devanado inverso.",
+          "Elimina las mallas completas cuyos volúmenes envolventes quedan fuera de los seis planos."
+        ],
+        correct: 2,
+        explanation: "En sólidos cerrados, las caras orientadas de espaldas a la cámara (N · V ≤ 0 o con orden de vértices contrario al establecido, p. ej. horario frente a antihorario) son siempre invisibles y se descartan antes de rasterizar."
+      },
+      {
+        id: 39,
+        topic: 4,
+        question: "¿Cuál es la principal limitación del Algoritmo del Pintor para resolver la visibilidad de superficies?",
+        options: [
+          "Requiere más memoria de vídeo por píxel que un Z-buffer de coma flotante de 32 bits.",
+          "Falla ante polígonos que se intersecan o forman ciclos de solapamiento sin subdividirlos.",
+          "Solo es aplicable cuando la cámara emplea una proyección ortográfica sin perspectiva.",
+          "Impide renderizar superficies opacas que tengan aplicadas texturas con mipmapping."
+        ],
+        correct: 1,
+        explanation: "El algoritmo del pintor ordena polígonos de atrás hacia adelante, pero en 3D tres polígonos pueden solaparse cíclicamente (A tapa a B, B a C y C a A) o intersecarse, haciendo imposible un orden global sin partir primitivas."
+      },
+      {
+        id: 40,
+        topic: 4,
+        question: "¿Qué ventaja introduce el modelo de reflexión de Blinn-Phong frente al modelo clásico de Phong?",
+        options: [
+          "Calcula iluminación global indirecta mediante trazado de rayos estocástico por píxel.",
+          "Elimina la componente difusa lambertiana para simular materiales metálicos conductores.",
+          "Sustituye el vector reflejado R por el vector normalizado promedio de las normales vecinas.",
+          "Usa el vector intermedio H = normalize(L + V), evitando cortes bruscos en ángulos rasantes."
+        ],
+        correct: 3,
+        explanation: "Blinn-Phong sustituye (R · V)^α por (N · H)^α', donde H biseca el ángulo entre L y V. Además de evitar calcular R, el ángulo entre N y H nunca supera 90° cuando luz y cámara están sobre la superficie."
+      },
+      {
+        id: 41,
+        topic: 4,
+        question: "¿En qué se diferencian los modelos de sombreado de Gouraud y de Phong durante la rasterización?",
+        options: [
+          "Gouraud calcula la luz en vértices e interpola colores; Phong interpola normales por píxel.",
+          "Gouraud evalúa la ecuación de luz por píxel; Phong aplica un único color sólido por cara.",
+          "Gouraud requiere mapas de normales tangentes; Phong únicamente utiliza normales de cara.",
+          "Gouraud solo soporta luces direccionales; Phong admite exclusivamente focos puntuales."
+        ],
+        correct: 0,
+        explanation: "Gouraud evalúa la iluminación en el Vertex Shader e interpola colores, pudiendo perder brillos especulares interiores en triángulos grandes; Phong interpola las normales y calcula la luz en cada fragmento."
+      },
+      {
+        id: 42,
+        topic: 4,
+        question: "Según la Ley del Coseno de Lambert, ¿de qué depende la radiancia difusa de una superficie mate ideal?",
+        options: [
+          "Del ángulo entre el vector reflejado R y la dirección del observador V elevado al brillo.",
+          "Del cuadrado de la distancia entre el centro de proyección de la cámara y el fragmento.",
+          "Del índice de refracción de Fresnel evaluado en ángulos rasantes respecto a la superficie.",
+          "Del producto escalar max(0, N · L), siendo totalmente independiente de la vista del observador."
+        ],
+        correct: 3,
+        explanation: "Una superficie lambertiana dispersa la luz incidente isotrópicamente en todas direcciones; por ello su brillo aparente solo depende del coseno del ángulo entre la normal N y la luz L."
+      },
+      {
+        id: 43,
+        topic: 4,
+        question: "¿Qué artefacto visual combate directamente el uso de Mipmapping al renderizar texturas en 3D?",
+        options: [
+          "La pixelación en bloques cuadrados cuando la cámara se acerca mucho a una superficie.",
+          "El aliasing de minificación y patrones de Moiré cuando muchos texels caen en un píxel.",
+          "La aparición de costuras visibles en los bordes de un Skybox con coordenadas fuera de rango.",
+          "La pérdida de relieve geométrico en paredes iluminadas por luces direccionales rasantes."
+        ],
+        correct: 1,
+        explanation: "Un Mipmap precalcula versiones filtradas y reducidas a la mitad sucesivamente (1/2, 1/4, 1/8...). Al renderizar objetos distantes se muestrea un nivel reducido ya prefiltrado, evitando aliasing temporal/espacial y mejorando la caché."
+      },
+      {
+        id: 44,
+        topic: 4,
+        question: "¿Cómo opera exactamente el Filtrado Trilineal al muestrear una textura con mipmaps?",
+        options: [
+          "Toma tres muestras consecutivas en el nivel base y calcula su mediana ponderada.",
+          "Muestrea tres texturas distintas (albedo, normal y rugosidad) en un único ciclo de reloj.",
+          "Realiza filtrado bilineal en los dos niveles de mipmap adyacentes e interpola entre ellos.",
+          "Subdivide el triángulo en tres subtriángulos menores antes de evaluar las coordenadas UV."
+        ],
+        correct: 2,
+        explanation: "El filtrado trilineal realiza dos consultas bilineales (en los niveles floor(LOD) y ceil(LOD)) y luego interpola linealmente ambos resultados según la parte fraccionaria del LOD, eliminando bandas bruscas entre niveles."
+      },
+      {
+        id: 45,
+        topic: 4,
+        question: "¿Por qué el Filtrado Anisotrópico supera al filtrado trilineal en suelos vistos en ángulo rasante?",
+        options: [
+          "Porque muestrea a lo largo del eje alargado de la proyección en lugar de asumir huella cuadrada.",
+          "Porque duplica dinámicamente la resolución en píxeles de la textura almacenada en VRAM.",
+          "Porque desactiva el Z-buffer en polígonos horizontales para evitar interferencias de nivel.",
+          "Porque sustituye las coordenadas UV por coordenadas esféricas centradas en el observador."
+        ],
+        correct: 0,
+        explanation: "En perspectivas rasantes, un píxel cuadrado se proyecta como un trapezoide muy alargado sobre la textura. El mipmapping isotrópico emborrona en exceso el eje poco comprimido, mientras que el anisotrópico toma varias muestras a lo largo del eje mayor."
+      },
+      {
+        id: 46,
+        topic: 4,
+        question: "¿Qué modo de envoltura (wrapping) evita costuras en los bordes de las caras de un Skybox?",
+        options: [
+          "Repeat, reiniciando las coordenadas UV en cada múltiplo entero para tiled continuo.",
+          "Clamp-to-Edge, fijando el muestreo al último texel del borde sin mezclar el lado opuesto.",
+          "Mirrored Repeat, invirtiendo el sentido de muestreo en cada transición de unidad entera.",
+          "Clamp-to-Border, rellenando las coordenadas exteriores con un color constante negro."
+        ],
+        correct: 1,
+        explanation: "Con Repeat, el filtrado bilineal en el extremo u = 1.0 interpola texels de u = 0.0 (el borde opuesto), creando líneas visibles en un Skybox. Clamp-to-Edge sujeta las coordenadas al extremo más cercano."
+      },
+      {
+        id: 47,
+        topic: 4,
+        question: "¿Para qué sirve un Árbol BSP (Binary Space Partitioning) en la determinación de visibilidad?",
+        options: [
+          "Comprime texturas de alta resolución mediante cuantización vectorial en bloques de 4×4.",
+          "Calcula intersecciones rayo-triángulo dinámicas en escenas con millones de partículas móviles.",
+          "Particiona el espacio con planos para recorrer caras estáticas ordenadas desde cualquier vista.",
+          "Interpola curvas paramétricas cúbicas garantizando continuidad geométrica en cada unión."
+        ],
+        correct: 2,
+        explanation: "Un árbol BSP subdivide el espacio mediante hiperplanos. Dada la posición de la cámara respecto al plano de cada nodo, un recorrido en orden (in-order) visita todas las caras estrictamente ordenadas en profundidad."
+      },
+      {
+        id: 48,
+        topic: 4,
+        question: "¿Qué codifican los canales RGB de un Mapa de Normales (Normal Map) en Espacio Tangente?",
+        options: [
+          "Las alturas escalares en escala de grises que requieren derivadas parciales en el shader.",
+          "Los coeficientes de reflexión difusa, especular y ambiental del material en cada texel.",
+          "Las coordenadas UV desplazadas por paralaje según el ángulo de visión del observador.",
+          "Las componentes (nx, ny, nz) del vector normal perturbado mapeadas desde [-1, 1] a [0, 1]."
+        ],
+        correct: 3,
+        explanation: "Un Normal Map almacena directamente los vectores normales perturbados en espacio tangente (TBN) transformando cada componente [-1, 1] al rango de color [0, 1] mediante (n + 1) / 2."
+      },
+
+      // =========================================================================
+      // TEMA 5: Curvas, Superficies Paramétricas y Gráficos Avanzados (IDs 49-60)
+      // =========================================================================
+      {
+        id: 49,
+        topic: 5,
+        question: "En una curva de Bézier de grado n definida por n + 1 puntos de control, ¿qué puntos interpola?",
+        options: [
+          "Interpola todos los puntos de control de índice par y aproxima los de índice impar.",
+          "No interpola ningún punto de control, pasando siempre por el interior de su envolvente.",
+          "Interpola únicamente los puntos extremos P_0 (t = 0) y P_n (t = 1), aproximando el resto.",
+          "Interpola exclusivamente el punto de control central cuando el grado n es un número par."
+        ],
+        correct: 2,
+        explanation: "Por las propiedades de los polinomios de Bernstein (B_0^n(0) = 1 y B_n^n(1) = 1), la curva empieza exactamente en P_0 y termina en P_n, siendo tangente a P_0P_1 y P_{n-1}P_n."
+      },
+      {
+        id: 50,
+        topic: 5,
+        question: "¿Qué propiedad de los polinomios de Bernstein garantiza que una curva de Bézier esté en su Envolvente Convexa?",
+        options: [
+          "Son polinomios ortogonales de media nula cuya integral en [0, 1] es exactamente cero.",
+          "Sus derivadas primeras se anulan en todos los nodos interiores del intervalo paramétrico.",
+          "Son funciones periódicas simétricas cuyo producto escalar dos a dos es siempre unitario.",
+          "Son no negativos (B_i^n(t) ≥ 0) y suman exactamente 1 en todo el intervalo t ∈ [0, 1]."
+        ],
+        correct: 3,
+        explanation: "Una combinación lineal Σ w_i P_i con pesos w_i ≥ 0 y Σ w_i = 1 es una combinación convexa, lo que garantiza geométricamente que toda la curva permanezca contenida dentro del Convex Hull de sus puntos de control."
+      },
+      {
+        id: 51,
+        topic: 5,
+        question: "¿Qué ventaja fundamental aportan las curvas B-Spline frente a una curva de Bézier única de grado alto?",
+        options: [
+          "Ofrecen control local y desacoplan el grado polinómico del número de puntos de control.",
+          "Permiten representar circunferencias exactas sin necesidad de coordenadas homogéneas.",
+          "Eliminan el uso de vectores de nudos utilizando siempre polinomios globales de grado uno.",
+          "Garantizan interpolación exacta de todos los puntos de control sin resolver sistemas lineales."
+        ],
+        correct: 0,
+        explanation: "En Bézier, añadir puntos eleva el grado global y mover un punto modifica toda la curva. Las B-Splines usan funciones base de soporte compacto que restringen el efecto de cada punto a un tramo local manteniendo grado bajo."
+      },
+      {
+        id: 52,
+        topic: 5,
+        question: "¿Por qué el estándar industrial CAD utiliza superficies NURBS frente a B-Splines no racionales?",
+        options: [
+          "Porque no requieren definir vectores de nudos ni mallas bidimensionales de control.",
+          "Porque incorporan pesos racionales que permiten representar secciones cónicas con exactitud.",
+          "Porque se rasterizan directamente en hardware sin necesidad de subdivisión en triángulos.",
+          "Porque reducen a la mitad el número de puntos de control necesarios para planos simples."
+        ],
+        correct: 1,
+        explanation: "Las B-Splines polinómicas no racionales solo aproximan círculos o esferas, mientras que las NURBS (Non-Uniform Rational B-Splines) añaden pesos w_i en espacio homogéneo permitiendo representar cónicas analíticamente exactas."
+      },
+      {
+        id: 53,
+        topic: 5,
+        question: "¿Qué diferencia existe entre continuidad paramétrica C¹ y continuidad geométrica G¹ entre dos tramos?",
+        options: [
+          "G¹ exige igualdad de derivadas segundas mientras que C¹ solo exige unión de extremos.",
+          "C¹ se aplica únicamente a superficies paramétricas y G¹ exclusivamente a curvas planas.",
+          "G¹ solo exige tangentes colineales sin coincidir en módulo; C¹ exige vectores iguales.",
+          "C¹ permite saltos discontinuos de posición mientras que G¹ impone curvatura constante."
+        ],
+        correct: 2,
+        explanation: "La continuidad geométrica G¹ requiere que los vectores tangentes en la unión apunten en la misma dirección (P'(1) = k·Q'(0) con k > 0), mientras que C¹ exige además igualdad de magnitud (k = 1)."
+      },
+      {
+        id: 54,
+        topic: 5,
+        question: "¿Qué diferencia estructural distingue al Ray Tracing clásico de la Rasterización en el bucle principal?",
+        options: [
+          "Ray Tracing lanza rayos desde la cámara por píxel; la rasterización proyecta primitivas.",
+          "Ray Tracing proyecta cada triángulo en NDC; la rasterización lanza rayos hacia las luces.",
+          "Ray Tracing solo admite esferas implícitas; la rasterización soporta mallas poligonales.",
+          "Ray Tracing prescinde de matrices de cámara; la rasterización requiere árboles BVH."
+        ],
+        correct: 0,
+        explanation: "La rasterización itera sobre primitivas proyectándolas sobre la rejilla de píxeles (enfoque objeto), mientras que Ray Tracing itera sobre los píxeles lanzando rayos hacia la escena (enfoque imagen) para evaluar visibilidad y transporte óptico."
+      },
+      {
+        id: 55,
+        topic: 5,
+        question: "¿Qué describe matemáticamente la Ecuación de Rendering formulada por James Kajiya?",
+        options: [
+          "La conversión de coordenadas homogéneas en Clip Space a píxeles enteros del viewport.",
+          "La variación temporal de la profundidad en el Z-buffer para evitar Z-fighting distante.",
+          "La radiancia saliente como suma de luz emitida más la integral hemisférica reflejada.",
+          "El cálculo incremental entero de intersecciones en aristas activas durante el scan-line."
+        ],
+        correct: 2,
+        explanation: "La ecuación de rendering L_o(x, ω_o) = L_e(x, ω_o) + ∫_Ω f_r(x, ω_i, ω_o) L_i(x, ω_i) (ω_i · n) dω_i establece la conservación de energía radiante en equilibrio óptico."
+      },
+      {
+        id: 56,
+        topic: 5,
+        question: "¿Qué significa el término 'Peter Panning' en la técnica de sombras Shadow Mapping?",
+        options: [
+          "La aparición de bandas escalonadas en bordes de sombra por baja resolución del mapa.",
+          "La separación visual entre un objeto y su sombra causada por un depth bias excesivo.",
+          "El parpadeo de sombras lejanas al mover la cámara por falta de filtrado PCF suave.",
+          "La proyección de sombras invertidas cuando un objeto queda detrás del plano Near."
+        ],
+        correct: 1,
+        explanation: "Para evitar el auto-sombreado erróneo (Shadow Acne) se aplica un sesgo de profundidad (depth bias); si este sesgo es demasiado grande, la sombra se desplaza haciendo que el objeto parezca flotar sobre el suelo."
+      },
+      {
+        id: 57,
+        topic: 5,
+        question: "¿Qué problema resuelve el algoritmo de De Casteljau en el cálculo de curvas de Bézier?",
+        options: [
+          "Convierte una superficie NURBS racional en una malla regular de cuadriláteros planos.",
+          "Evalúa puntos y subdivide curvas de Bézier de forma numéricamente estable con interpolaciones.",
+          "Elimina las caras ocultas de una curva 3D proyectada sobre el plano de visión ortográfico.",
+          "Calcula el vector normal de una curva plana sin necesidad de derivar sus polinomios."
+        ],
+        correct: 1,
+        explanation: "El algoritmo de De Casteljau evalúa C(t) mediante interpolaciones lineales recursivas entre segmentos sucesivos, evitando el cálculo directo de coeficientes binomiales elevados y permitiendo partir la curva exactamente en t."
+      },
+      {
+        id: 58,
+        topic: 5,
+        question: "¿Qué dos propiedades físicas debe satisfacer toda función BRDF físicamente plausible en PBR?",
+        options: [
+          "Invarianza frente a traslaciones de cámara y linealidad respecto al exponente especular.",
+          "Ortogonalidad entre rayos incidentes y reflejados, y nulidad en ángulos rasantes.",
+          "Reciprocidad de Helmholtz y conservación de la energía reflejada respecto a la incidente.",
+          "Simetría esférica isotrópica y ausencia total de absorción en materiales dieléctricos."
+        ],
+        correct: 2,
+        explanation: "Toda BRDF física f_r(ω_i, ω_o) debe cumplir la reciprocidad de Helmholtz (f_r(ω_i, ω_o) = f_r(ω_o, ω_i)) y la conservación de energía (∫_Ω f_r(ω_i, ω_o)(ω_i · n) dω_i ≤ 1)."
+      },
+      {
+        id: 59,
+        topic: 5,
+        question: "¿Qué diferencia estructural existe entre una jerarquía BVH y un KD-Tree en Ray Tracing?",
+        options: [
+          "KD-Tree agrupa primitivas en esferas solapadas; BVH divide el espacio en voxeles cúbicos.",
+          "BVH solo funciona en escenas 2D planas; KD-Tree soporta geometría tridimensional compleja.",
+          "KD-Tree tiene coste lineal O(N) por rayo; BVH garantiza complejidad constante O(1).",
+          "BVH particiona objetos en cajas envolventes solapables; KD-Tree particiona el espacio."
+        ],
+        correct: 3,
+        explanation: "En una BVH (Bounding Volume Hierarchy) cada primitiva pertenece a un único nodo hoja y los volúmenes AABB hermanos pueden solaparse; en un KD-Tree se particiona el espacio mediante planos ortogonales disjuntos."
+      },
+      {
+        id: 60,
+        topic: 5,
+        question: "¿Qué artefacto elimina la técnica PCF (Percentage-Closer Filtering) en Shadow Mapping?",
+        options: [
+          "Suaviza los bordes dentados de las sombras muestreando y promediando comparaciones Z.",
+          "Elimina la deformación perspectiva en superficies inclinadas cercanas al plano Near.",
+          "Corrige el Z-fighting entre mallas coplanares mediante desplazamiento de vértices.",
+          "Suprime el ruido estocástico en reflejos especulares de materiales metálicos rugosos."
+        ],
+        correct: 0,
+        explanation: "Dado que promediar profundidades directamente en un Shadow Map no suaviza la sombra, PCF realiza múltiples comparaciones de profundidad alrededor del texel y promedia los resultados binarios (0 o 1) para obtener penumbras suaves."
+      }
+    ];
+
+    /* ============================================================================
+       3. GESTIÓN DE ESTADO, ESTADÍSTICAS Y SESIÓN ACTIVA EN LOCALSTORAGE
+       ============================================================================ */
+    const STORAGE_KEY = "gc_exam_simulator_v3";
+    const SESSION_KEY = "gc_active_session_v3";
+
+    class Store {
+      constructor() {
+        this.data = this.load();
+      }
+
+      getDefaultState() {
+        return {
+          theme: "light",
+          examsCompleted: 0,
+          history: [],
+          topicStats: {
+            1: { correct: 0, incorrect: 0, blank: 0 },
+            2: { correct: 0, incorrect: 0, blank: 0 },
+            3: { correct: 0, incorrect: 0, blank: 0 },
+            4: { correct: 0, incorrect: 0, blank: 0 },
+            5: { correct: 0, incorrect: 0, blank: 0 }
+          },
+          failedIds: [] // IDs de preguntas falladas o aún no acertadas
+        };
+      }
+
+      load() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return this.getDefaultState();
+          const parsed = JSON.parse(raw);
+          return {
+            ...this.getDefaultState(),
+            ...parsed,
+            topicStats: {
+              ...this.getDefaultState().topicStats,
+              ...(parsed.topicStats || {})
+            }
+          };
+        } catch (e) {
+          return this.getDefaultState();
+        }
+      }
+
+      save() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+        } catch (e) {
+          // Ignorar si almacenamiento restringido
+        }
+      }
+
+      saveActiveSession(sessionObj) {
+        try {
+          if (!sessionObj) {
+            localStorage.removeItem(SESSION_KEY);
+          } else {
+            // No serializamos timerId ni referencias de función
+            const serializable = {
+              modeId: sessionObj.modeId,
+              modeName: sessionObj.modeName,
+              instantMode: sessionObj.instantMode,
+              currentIndex: sessionObj.currentIndex,
+              questionIds: sessionObj.questions.map(q => q.id),
+              optionOrders: sessionObj.optionOrders,
+              answers: sessionObj.answers,
+              locked: sessionObj.locked,
+              doubtful: sessionObj.doubtful,
+              timeLeft: sessionObj.timeLeft
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(serializable));
+          }
+        } catch (e) {
+          // Ignorar
+        }
+      }
+
+      loadActiveSession() {
+        try {
+          const raw = localStorage.getItem(SESSION_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          const questions = parsed.questionIds
+            .map(id => QUESTIONS_DB.find(q => q.id === id))
+            .filter(Boolean);
+          if (questions.length !== parsed.questionIds.length || questions.length === 0) {
+            return null;
+          }
+          return {
+            ...parsed,
+            questions,
+            timerId: null
+          };
+        } catch (e) {
+          return null;
+        }
+      }
+
+      markFailedOrPending(questionId) {
+        if (!this.data.failedIds.includes(questionId)) {
+          this.data.failedIds.push(questionId);
+          this.save();
+        }
+      }
+
+      removeFromFailed(questionId) {
+        const idx = this.data.failedIds.indexOf(questionId);
+        if (idx !== -1) {
+          this.data.failedIds.splice(idx, 1);
+          this.save();
+          return true;
+        }
+        return false;
+      }
+
+      recordQuestionOutcome(topicId, outcome) {
+        if (!this.data.topicStats[topicId]) {
+          this.data.topicStats[topicId] = { correct: 0, incorrect: 0, blank: 0 };
+        }
+        this.data.topicStats[topicId][outcome]++;
+        this.save();
+      }
+
+      resetAll() {
+        const currentTheme = this.data.theme;
+        this.data = this.getDefaultState();
+        this.data.theme = currentTheme;
+        this.save();
+        this.saveActiveSession(null);
+      }
+    }
+
+    const store = new Store();
+
+    /* ============================================================================
+       4. CONTROLADOR PRINCIPAL DE LA APLICACIÓN
+       ============================================================================ */
+    const app = {
+      view: "dashboard", // "dashboard" | "exam" | "results"
+      exam: null,
+      lastResult: null,
+      reviewFilter: "all",
+
+      init() {
+        this.applyTheme(store.data.theme);
+        this.bindKeyboardShortcuts();
+        this.showDashboard();
+      },
+
+      // --- Gestión de Tema Claro / Oscuro ---
+      applyTheme(theme) {
+        document.documentElement.setAttribute("data-theme", theme);
+        const icon = document.getElementById("themeIcon");
+        const label = document.getElementById("themeLabel");
+        if (icon && label) {
+          if (theme === "dark") {
+            icon.textContent = "☀️";
+            label.textContent = "Modo Claro";
+          } else {
+            icon.textContent = "🌙";
+            label.textContent = "Modo Oscuro";
+          }
+        }
+      },
+
+      toggleTheme() {
+        const next = store.data.theme === "dark" ? "light" : "dark";
+        store.data.theme = next;
+        store.save();
+        this.applyTheme(next);
+      },
+
+      // --- Notificaciones Toast y Modales ---
+      showToast(message, borderColor = "var(--primary)") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.style.borderLeftColor = borderColor;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(8px)";
+          toast.style.transition = "all 0.25s ease";
+          setTimeout(() => toast.remove(), 260);
+        }, 3000);
+      },
+
+      openModal({ title, bodyHtml, confirmText = "Confirmar", confirmClass = "btn-primary", cancelText = "Cancelar", onConfirm }) {
+        const modal = document.getElementById("customModal");
+        document.getElementById("modalTitle").textContent = title;
+        document.getElementById("modalBody").innerHTML = bodyHtml;
+
+        const confirmBtn = document.getElementById("modalConfirm");
+        const cancelBtn = document.getElementById("modalCancel");
+
+        confirmBtn.textContent = confirmText;
+        confirmBtn.className = `btn ${confirmClass}`;
+        cancelBtn.textContent = cancelText;
+
+        modal.classList.remove("hidden");
+
+        cancelBtn.onclick = () => modal.classList.add("hidden");
+        confirmBtn.onclick = () => {
+          modal.classList.add("hidden");
+          if (onConfirm) onConfirm();
+        };
+      },
+
+      confirmResetStats() {
+        this.openModal({
+          title: "Reiniciar todas las estadísticas",
+          bodyHtml: "Se borrarán todos los exámenes realizados, el progreso por tema, la sesión guardada y la lista de preguntas falladas o pendientes. ¿Deseas continuar?",
+          confirmText: "Sí, reiniciar todo",
+          confirmClass: "btn-amber",
+          onConfirm: () => {
+            store.resetAll();
+            this.showToast("Estadísticas e historial reiniciados correctamente.", "var(--amber)");
+            this.showDashboard();
+          }
+        });
+      },
+
+      // --- Atajos de Teclado ---
+      bindKeyboardShortcuts() {
+        document.addEventListener("keydown", (e) => {
+          if (this.view !== "exam" || !this.exam) return;
+          const modalOpen = !document.getElementById("customModal").classList.contains("hidden");
+          if (modalOpen) return;
+
+          const key = e.key.toLowerCase();
+          const keyMap = { "1": 0, "a": 0, "2": 1, "b": 1, "3": 2, "c": 2, "4": 3, "d": 3 };
+          if (key in keyMap) {
+            e.preventDefault();
+            this.selectOption(keyMap[key]);
+            return;
+          }
+
+          if (e.key === "ArrowRight" || e.key === "Enter") {
+            e.preventDefault();
+            this.nextQuestion();
+            return;
+          }
+
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            this.prevQuestion();
+          }
+        });
+      },
+
+      // --- Algoritmo Fisher-Yates para barajar arrays y opciones ---
+      shuffle(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      },
+
+      generateOptionOrder() {
+        return this.shuffle([0, 1, 2, 3]);
+      },
+
+      getWeighted20Questions() {
+        let selected = [];
+        for (let t = 1; t <= 5; t++) {
+          const quota = WEIGHTED_QUOTAS[t];
+          const pool = this.shuffle(QUESTIONS_DB.filter(q => q.topic === t));
+          selected = selected.concat(pool.slice(0, quota));
+        }
+        return this.shuffle(selected);
+      },
+
+      calculateScores(correct, incorrect, totalQuestions) {
+        const netPoints = (correct * 0.50) - (incorrect * 0.16);
+        const maxPossiblePoints = totalQuestions * 0.50;
+        const normalized10 = maxPossiblePoints > 0
+          ? Math.max(0, Math.min(10, (netPoints / maxPossiblePoints) * 10))
+          : 0;
+        return {
+          netPoints: Math.round(netPoints * 100) / 100,
+          maxPossiblePoints: Math.round(maxPossiblePoints * 100) / 100,
+          score10: Math.round(normalized10 * 100) / 100
+        };
+      },
+
+      // =========================================================================
+      // 5. DASHBOARD PRINCIPAL
+      // =========================================================================
+      showDashboard() {
+        this.view = "dashboard";
+        if (this.exam && this.exam.timerId) {
+          clearInterval(this.exam.timerId);
+        }
+        this.exam = null;
+
+        const savedSession = store.loadActiveSession();
+        const { examsCompleted, history, topicStats, failedIds } = store.data;
+
+        const avgScore = examsCompleted > 0
+          ? (history.reduce((acc, item) => acc + item.score10, 0) / examsCompleted).toFixed(2)
+          : "0.00";
+
+        let totalCorrectAll = 0;
+        let totalAttemptsAll = 0;
+        for (let t = 1; t <= 5; t++) {
+          const st = topicStats[t] || { correct: 0, incorrect: 0, blank: 0 };
+          totalCorrectAll += st.correct;
+          totalAttemptsAll += (st.correct + st.incorrect + st.blank);
+        }
+        const globalAccuracy = totalAttemptsAll > 0
+          ? Math.round((totalCorrectAll / totalAttemptsAll) * 100)
+          : 0;
+
+        const root = document.getElementById("appRoot");
+        root.innerHTML = `
+          <div class="animate-in">
+            ${savedSession ? `
+              <div class="resume-banner">
+                <div>
+                  <strong>⏳ Tienes una sesión sin finalizar:</strong> ${savedSession.modeName} (Pregunta ${savedSession.currentIndex + 1} de ${savedSession.questions.length})
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button class="btn btn-amber" onclick="app.resumeSavedSession()">Reanudar Sesión →</button>
+                  <button class="btn btn-secondary" onclick="app.discardSavedSession()">Descartar</button>
+                </div>
+              </div>
+            ` : ""}
+
+            <!-- BANNER DE BIENVENIDA -->
+            <section class="hero-banner">
+              <div class="hero-badge">
+                <span>🎓 Convocatoria Universitaria · Gráficos por Computador</span>
+              </div>
+              <h1 class="hero-title">Simulador de Exámenes Tipo Test</h1>
+              <p class="hero-desc">
+                Banco equilibrado de 60 preguntas técnicas universitarias divididas en 5 temas, con permutación aleatoria Fisher-Yates de las opciones A/B/C/D en cada intento y opciones calibradas sin sesgos de longitud ni posición.
+              </p>
+              <div class="formula-pill-row">
+                <span class="formula-pill">✓ Acierto: +0,50 pts</span>
+                <span class="formula-pill">✕ Fallo: -0,16 pts</span>
+                <span class="formula-pill">○ En blanco: 0,00 pts</span>
+                <span class="formula-pill">🔀 Orden A/B/C/D aleatorio por intento</span>
+              </div>
+            </section>
+
+            <!-- TARJETAS DE MÉTRICAS GLOBALES -->
+            <section class="metrics-grid">
+              <div class="metric-card">
+                <span class="metric-label">Exámenes Completados</span>
+                <div class="metric-value-row">
+                  <span class="metric-value">${examsCompleted}</span>
+                  <span class="metric-sub">sesiones</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <span class="metric-label">Nota Media (sobre 10)</span>
+                <div class="metric-value-row">
+                  <span class="metric-value" style="color: ${Number(avgScore) >= 5 ? 'var(--emerald)' : 'var(--primary)'}">${avgScore}</span>
+                  <span class="metric-sub">/ 10,00</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <span class="metric-label">Tasa Global de Acierto</span>
+                <div class="metric-value-row">
+                  <span class="metric-value" style="color: var(--emerald)">${globalAccuracy}%</span>
+                  <span class="metric-sub">${totalCorrectAll}/${totalAttemptsAll} resp.</span>
+                </div>
+              </div>
+
+              <div class="metric-card">
+                <span class="metric-label">Falladas / Pendientes</span>
+                <div class="metric-value-row">
+                  <span class="metric-value" style="color: ${failedIds.length > 0 ? 'var(--coral)' : 'var(--emerald)'}">${failedIds.length}</span>
+                  <span class="metric-sub">por dominar</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- 4 MODOS DE ESTUDIO Y EXAMEN -->
+            <h2 class="section-heading">Selecciona una Modalidad de Examen</h2>
+            <section class="modes-grid">
+              
+              <!-- MODO 1: SIMULACRO PONDERADO (EXAMEN OFICIAL) -->
+              <article class="mode-card">
+                <div>
+                  <div class="mode-icon-box" style="background: var(--primary-soft); color: var(--primary);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  </div>
+                  <span class="mode-tag" style="background: var(--primary-soft); color: var(--primary-text);">20 Preguntas Ponderadas · 30 Min</span>
+                  <h3 class="mode-title">1. Simulacro Ponderado (Oficial)</h3>
+                  <p class="mode-desc">
+                    Examen oficial de 20 preguntas seleccionadas según el peso de cada tema (T1:3, T2:4, T3:5, T4:5, T5:3), temporizador de 30 minutos y corrección al finalizar.
+                  </p>
+                </div>
+                <div class="mode-controls">
+                  <button class="btn btn-primary btn-full" onclick="app.startOfficialMode()">
+                    Iniciar Simulacro Oficial →
+                  </button>
+                </div>
+              </article>
+
+              <!-- MODO 2: CORRECCIÓN INMEDIATA (1 A 1) [DESTACADO NUEVO] -->
+              <article class="mode-card featured">
+                <span class="badge-new">NUEVO</span>
+                <div>
+                  <div class="mode-icon-box" style="background: var(--emerald-soft); color: var(--emerald);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  </div>
+                  <span class="mode-tag" style="background: var(--emerald-soft); color: var(--emerald-text);">Feedback Instantáneo + Explicación</span>
+                  <h3 class="mode-title">2. Corrección Inmediata (1 a 1)</h3>
+                  <p class="mode-desc">
+                    Responde pregunta a pregunta: al pulsar una opción se marca al instante en verde o rojo, actualiza el marcador en vivo y despliega la explicación teórica.
+                  </p>
+                </div>
+                <div class="mode-controls">
+                  <select id="instantModeScope" class="select-control" aria-label="Alcance para Corrección Inmediata">
+                    <option value="weighted20">Simulacro Ponderado (20 preguntas)</option>
+                    <option value="all60">Banco Completo (60 preguntas)</option>
+                    <option value="1">Tema 1: Pipeline y Coordenadas (12 preg.)</option>
+                    <option value="2">Tema 2: Rasterización y Recorte (12 preg.)</option>
+                    <option value="3">Tema 3: Transformaciones y Cámaras (12 preg.)</option>
+                    <option value="4">Tema 4: Visibilidad, Luz y Texturas (12 preg.)</option>
+                    <option value="5">Tema 5: Curvas y Gráficos Avanzados (12 preg.)</option>
+                  </select>
+                  <button class="btn btn-emerald btn-full" onclick="app.startInstantMode()">
+                    Comenzar Modo 1 a 1 →
+                  </button>
+                </div>
+              </article>
+
+              <!-- MODO 3: PREGUNTAS PENDIENTES / FALLADAS -->
+              <article class="mode-card">
+                <div>
+                  <div class="mode-icon-box" style="background: var(--amber-soft); color: var(--amber);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                  </div>
+                  <span class="mode-tag" style="background: var(--amber-soft); color: var(--amber-text);">${failedIds.length} preguntas por dominar</span>
+                  <h3 class="mode-title">3. Preguntas Pendientes / Falladas</h3>
+                  <p class="mode-desc">
+                    Repaso inteligente de las preguntas falladas o dejadas en blanco en intentos anteriores. Al acertarlas en este modo, se eliminan de tu lista pendiente.
+                  </p>
+                </div>
+                <div class="mode-controls">
+                  <select id="pendingCorrectionStyle" class="select-control" aria-label="Tipo de corrección para pendientes">
+                    <option value="instant">Corrección Inmediata (1 a 1)</option>
+                    <option value="end">Corrección al Finalizar</option>
+                  </select>
+                  <button class="btn btn-amber btn-full" onclick="app.startReviewFailedMode()">
+                    Repasar Pendientes (${failedIds.length}) →
+                  </button>
+                </div>
+              </article>
+
+              <!-- MODO 4: PRÁCTICA LIBRE POR TEMA -->
+              <article class="mode-card">
+                <div>
+                  <div class="mode-icon-box" style="background: var(--primary-soft); color: var(--primary);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                  </div>
+                  <span class="mode-tag" style="background: var(--primary-soft); color: var(--primary-text);">Sin Límite de Tiempo</span>
+                  <h3 class="mode-title">4. Práctica Libre por Tema</h3>
+                  <p class="mode-desc">
+                    Elige cualquier bloque temático (1 a 5) o el banco completo y selecciona si prefieres corrección inmediata 1 a 1 o entrega global al terminar.
+                  </p>
+                </div>
+                <div class="mode-controls">
+                  <select id="freeTopicSelect" class="select-control" aria-label="Seleccionar tema de práctica">
+                    <option value="1">Tema 1: Pipeline Gráfico y Coordenadas (12)</option>
+                    <option value="2">Tema 2: Primitivas, Rasterización y Recorte (12)</option>
+                    <option value="3">Tema 3: Transformaciones y Cámaras (12)</option>
+                    <option value="4">Tema 4: Visibilidad, Luz y Texturas (12)</option>
+                    <option value="5">Tema 5: Curvas y Gráficos Avanzados (12)</option>
+                    <option value="all">Todos los temas (60 preguntas)</option>
+                  </select>
+                  <select id="freeCorrectionStyle" class="select-control" aria-label="Tipo de corrección para práctica libre">
+                    <option value="end">Corrección al Finalizar</option>
+                    <option value="instant">Corrección Inmediata (1 a 1)</option>
+                  </select>
+                  <button class="btn btn-secondary btn-full" onclick="app.startFreeTopicMode()">
+                    Iniciar Práctica Libre →
+                  </button>
+                </div>
+              </article>
+
+            </section>
+
+            <!-- PROGRESO POR TEMA E HISTORIAL -->
+            <section class="dashboard-bottom-grid">
+              <div class="panel-card">
+                <h3 class="section-heading" style="font-size: 1.05rem;">Dominio por Bloques Temáticos</h3>
+                ${[1, 2, 3, 4, 5].map(t => {
+                  const st = topicStats[t] || { correct: 0, incorrect: 0, blank: 0 };
+                  const total = st.correct + st.incorrect + st.blank;
+                  const pct = total > 0 ? Math.round((st.correct / total) * 100) : 0;
+                  const barColor = pct >= 70 ? "var(--emerald)" : pct >= 50 ? "var(--primary)" : total > 0 ? "var(--coral)" : "var(--border-strong)";
+                  return `
+                    <div class="topic-progress-item">
+                      <div class="topic-progress-header">
+                        <span>${TOPICS[t]}</span>
+                        <span style="color: var(--text-muted); white-space: nowrap;">${pct}% (${st.correct}/${total})</span>
+                      </div>
+                      <div class="progress-track">
+                        <div class="progress-fill" style="width: ${pct}%; background: ${barColor};"></div>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+              <div class="panel-card">
+                <h3 class="section-heading" style="font-size: 1.05rem;">Historial Reciente de Sesiones</h3>
+                ${history.length === 0 ? `
+                  <div style="padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+                    Aún no has completado ningún examen.<br>¡Selecciona una modalidad arriba para comenzar!
+                  </div>
+                ` : `
+                  <div class="history-table-wrap">
+                    <table class="history-table">
+                      <thead>
+                        <tr>
+                          <th>Fecha</th>
+                          <th>Modalidad</th>
+                          <th>A / F / B</th>
+                          <th style="text-align: right;">Nota / 10</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${[...history].reverse().slice(0, 6).map(h => `
+                          <tr>
+                            <td style="color: var(--text-muted); white-space: nowrap;">${new Date(h.date).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</td>
+                            <td style="font-weight: 600;">${h.modeName}</td>
+                            <td style="white-space: nowrap;">
+                              <span style="color: var(--emerald); font-weight: 700;">${h.correct}</span> /
+                              <span style="color: var(--coral); font-weight: 700;">${h.incorrect}</span> /
+                              <span style="color: var(--text-muted);">${h.blank}</span>
+                            </td>
+                            <td style="text-align: right; font-weight: 800; color: ${h.score10 >= 5 ? "var(--emerald)" : "var(--coral)"};">
+                              ${h.score10.toFixed(2)}
+                            </td>
+                          </tr>
+                        `).join("")}
+                      </tbody>
+                    </table>
+                  </div>
+                `}
+              </div>
+            </section>
+          </div>
+        `;
+      },
+
+      // =========================================================================
+      // 6. INICIO Y REANUDACIÓN DE EXÁMENES (CON PERMUTACIÓN FISHER-YATES)
+      // =========================================================================
+      resumeSavedSession() {
+        const saved = store.loadActiveSession();
+        if (!saved) {
+          this.showToast("No hay ninguna sesión guardada disponible.", "var(--amber)");
+          this.showDashboard();
+          return;
+        }
+        this.exam = saved;
+        if (this.exam.timeLeft !== null) {
+          this.startExamTimer();
+        }
+        this.view = "exam";
+        this.renderExam();
+      },
+
+      discardSavedSession() {
+        store.saveActiveSession(null);
+        this.showToast("Sesión anterior descartada.", "var(--primary)");
+        this.showDashboard();
+      },
+
+      startOfficialMode() {
+        const questions = this.getWeighted20Questions();
+        this.launchExam({
+          modeId: "official",
+          modeName: "Simulacro Ponderado (Oficial)",
+          questions,
+          instantMode: false,
+          durationSeconds: 30 * 60
+        });
+      },
+
+      startInstantMode() {
+        const scope = document.getElementById("instantModeScope").value;
+        let questions = [];
+        let label = "Corrección Inmediata (1 a 1)";
+
+        if (scope === "weighted20") {
+          questions = this.getWeighted20Questions();
+          label = "1 a 1 · Ponderado (20 preg.)";
+        } else if (scope === "all60") {
+          questions = this.shuffle(QUESTIONS_DB);
+          label = "1 a 1 · Banco Completo (60 preg.)";
+        } else {
+          const topicId = Number(scope);
+          questions = this.shuffle(QUESTIONS_DB.filter(q => q.topic === topicId));
+          label = `1 a 1 · Tema ${topicId} (12 preg.)`;
+        }
+
+        this.launchExam({
+          modeId: "instant",
+          modeName: label,
+          questions,
+          instantMode: true,
+          durationSeconds: null
+        });
+      },
+
+      startReviewFailedMode() {
+        const style = document.getElementById("pendingCorrectionStyle").value;
+        const instantMode = style === "instant";
+        const failedIds = store.data.failedIds;
+
+        if (failedIds.length === 0) {
+          this.openModal({
+            title: "¡Sin preguntas pendientes!",
+            bodyHtml: "Ahora mismo tienes <strong>0 preguntas falladas o pendientes</strong> en tu registro. ¿Deseas cargar una sesión aleatoria de 15 preguntas para seguir entrenando?",
+            confirmText: "Cargar 15 aleatorias",
+            confirmClass: "btn-emerald",
+            onConfirm: () => {
+              const randomQs = this.shuffle(QUESTIONS_DB).slice(0, 15);
+              this.launchExam({
+                modeId: "review_failed",
+                modeName: `Repaso Aleatorio (${instantMode ? "1 a 1" : "Al final"})`,
+                questions: randomQs,
+                instantMode,
+                durationSeconds: null
+              });
+            }
+          });
+          return;
+        }
+
+        const pendingQs = this.shuffle(QUESTIONS_DB.filter(q => failedIds.includes(q.id)));
+        this.launchExam({
+          modeId: "review_failed",
+          modeName: `Repaso de Pendientes (${pendingQs.length} preg.)`,
+          questions: pendingQs,
+          instantMode,
+          durationSeconds: null
+        });
+      },
+
+      startFreeTopicMode() {
+        const scope = document.getElementById("freeTopicSelect").value;
+        const style = document.getElementById("freeCorrectionStyle").value;
+        const instantMode = style === "instant";
+
+        let questions = [];
+        let label = "";
+        if (scope === "all") {
+          questions = this.shuffle(QUESTIONS_DB);
+          label = `Práctica Libre · Todos los temas (${instantMode ? "1 a 1" : "Al final"})`;
+        } else {
+          const topicId = Number(scope);
+          questions = this.shuffle(QUESTIONS_DB.filter(q => q.topic === topicId));
+          label = `Práctica Libre · Tema ${topicId} (${instantMode ? "1 a 1" : "Al final"})`;
+        }
+
+        this.launchExam({
+          modeId: "topic",
+          modeName: label,
+          questions,
+          instantMode,
+          durationSeconds: null
+        });
+      },
+
+      launchExam({ modeId, modeName, questions, instantMode, durationSeconds }) {
+        if (this.exam && this.exam.timerId) {
+          clearInterval(this.exam.timerId);
+        }
+
+        // Generar una permutación aleatoria Fisher-Yates para las 4 opciones de CADA pregunta
+        const optionOrders = questions.map(() => this.generateOptionOrder());
+
+        this.exam = {
+          modeId,
+          modeName,
+          questions,
+          optionOrders,
+          instantMode,
+          currentIndex: 0,
+          answers: new Array(questions.length).fill(null), // Guarda el displayIndex (0..3) elegido por el usuario
+          locked: new Array(questions.length).fill(false),
+          doubtful: new Array(questions.length).fill(false),
+          timeLeft: durationSeconds,
+          timerId: null
+        };
+
+        store.saveActiveSession(this.exam);
+
+        if (durationSeconds !== null) {
+          this.startExamTimer();
+        }
+
+        this.view = "exam";
+        this.renderExam();
+      },
+
+      startExamTimer() {
+        if (this.exam.timerId) clearInterval(this.exam.timerId);
+        this.exam.timerId = setInterval(() => {
+          if (!this.exam) return;
+          if (this.exam.timeLeft > 0) {
+            this.exam.timeLeft--;
+            store.saveActiveSession(this.exam);
+            this.updateTimerUI();
+          } else {
+            clearInterval(this.exam.timerId);
+            this.showToast("¡Tiempo agotado! Corrigiendo examen automáticamente...", "var(--coral)");
+            this.finalizeExam();
+          }
+        }, 1000);
+      },
+
+      updateTimerUI() {
+        const el = document.getElementById("timerDisplay");
+        if (!el || !this.exam || this.exam.timeLeft === null) return;
+        const mins = Math.floor(this.exam.timeLeft / 60);
+        const secs = this.exam.timeLeft % 60;
+        el.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        if (this.exam.timeLeft <= 180) {
+          el.parentElement.classList.add("danger");
+        }
+      },
+
+      // =========================================================================
+      // 7. LÓGICA DE SELECCIÓN Y NAVEGACIÓN EN EL EXAMEN
+      // =========================================================================
+      isDisplayOptionCorrect(questionIndex, displayOptIdx) {
+        const q = this.exam.questions[questionIndex];
+        const origOptIdx = this.exam.optionOrders[questionIndex][displayOptIdx];
+        return origOptIdx === q.correct;
+      },
+
+      selectOption(displayOptIdx) {
+        const ex = this.exam;
+        if (!ex) return;
+        const idx = ex.currentIndex;
+
+        if (ex.instantMode && ex.locked[idx]) {
+          return;
+        }
+
+        ex.answers[idx] = displayOptIdx;
+
+        if (ex.instantMode) {
+          ex.locked[idx] = true;
+          const q = ex.questions[idx];
+          const isCorrect = this.isDisplayOptionCorrect(idx, displayOptIdx);
+
+          if (isCorrect) {
+            store.recordQuestionOutcome(q.topic, "correct");
+            store.removeFromFailed(q.id);
+          } else {
+            store.recordQuestionOutcome(q.topic, "incorrect");
+            store.markFailedOrPending(q.id);
+          }
+        }
+
+        store.saveActiveSession(ex);
+        this.renderExam();
+      },
+
+      skipAndRevealInstant() {
+        const ex = this.exam;
+        if (!ex || !ex.instantMode) return;
+        const idx = ex.currentIndex;
+        if (ex.locked[idx]) return;
+
+        ex.answers[idx] = null;
+        ex.locked[idx] = true;
+
+        const q = ex.questions[idx];
+        store.recordQuestionOutcome(q.topic, "blank");
+        store.markFailedOrPending(q.id);
+
+        store.saveActiveSession(ex);
+        this.renderExam();
+      },
+
+      clearStandardAnswer() {
+        const ex = this.exam;
+        if (!ex || ex.instantMode) return;
+        ex.answers[ex.currentIndex] = null;
+        store.saveActiveSession(ex);
+        this.renderExam();
+      },
+
+      toggleDoubt() {
+        const ex = this.exam;
+        if (!ex) return;
+        ex.doubtful[ex.currentIndex] = !ex.doubtful[ex.currentIndex];
+        store.saveActiveSession(ex);
+        this.renderExam();
+      },
+
+      goToQuestion(index) {
+        if (!this.exam) return;
+        if (index >= 0 && index < this.exam.questions.length) {
+          this.exam.currentIndex = index;
+          store.saveActiveSession(this.exam);
+          this.renderExam();
+        }
+      },
+
+      prevQuestion() {
+        if (this.exam && this.exam.currentIndex > 0) {
+          this.exam.currentIndex--;
+          store.saveActiveSession(this.exam);
+          this.renderExam();
+        }
+      },
+
+      nextQuestion() {
+        if (!this.exam) return;
+        if (this.exam.currentIndex < this.exam.questions.length - 1) {
+          this.exam.currentIndex++;
+          store.saveActiveSession(this.exam);
+          this.renderExam();
+        } else {
+          this.promptFinishExam();
+        }
+      },
+
+      // =========================================================================
+      // 8. RENDERIZADO DE LA VISTA DE EXAMEN
+      // =========================================================================
+      renderExam() {
+        const ex = this.exam;
+        const idx = ex.currentIndex;
+        const q = ex.questions[idx];
+        const order = ex.optionOrders[idx]; // Permutación Fisher-Yates [orig0, orig1, orig2, orig3]
+        const userDisplayAns = ex.answers[idx];
+        const isLocked = ex.instantMode && ex.locked[idx];
+        const isDoubt = ex.doubtful[idx];
+
+        let liveCorrect = 0;
+        let liveIncorrect = 0;
+        let liveBlank = 0;
+        if (ex.instantMode) {
+          ex.questions.forEach((item, i) => {
+            if (ex.locked[i]) {
+              if (ex.answers[i] === null) liveBlank++;
+              else if (this.isDisplayOptionCorrect(i, ex.answers[i])) liveCorrect++;
+              else liveIncorrect++;
+            }
+          });
+        }
+        const liveScoreObj = this.calculateScores(liveCorrect, liveIncorrect, ex.questions.length);
+
+        const root = document.getElementById("appRoot");
+        root.innerHTML = `
+          <div class="animate-in">
+            <!-- BARRA SUPERIOR -->
+            <div class="exam-topbar">
+              <div>
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.04em;">
+                  ${ex.modeName}
+                </div>
+                <div style="font-size: 1.05rem; font-weight: 800;">
+                  Pregunta ${idx + 1} de ${ex.questions.length}
+                </div>
+              </div>
+
+              ${ex.instantMode ? `
+                <div class="live-scoreboard" aria-label="Marcador en vivo">
+                  <span class="score-chip ok">✓ ${liveCorrect}</span>
+                  <span class="score-chip err">✕ ${liveIncorrect}</span>
+                  <span class="score-chip">○ ${liveBlank}</span>
+                  <span class="score-chip pts">Pts: ${liveScoreObj.netPoints >= 0 ? "+" : ""}${liveScoreObj.netPoints.toFixed(2)} / ${liveScoreObj.maxPossiblePoints.toFixed(2)} · Nota: ${liveScoreObj.score10.toFixed(2)}/10</span>
+                </div>
+              ` : ""}
+
+              <div style="display: flex; align-items: center; gap: 0.65rem;">
+                ${ex.timeLeft !== null ? `
+                  <div class="timer-badge">
+                    <span>⏱</span>
+                    <span id="timerDisplay">30:00</span>
+                  </div>
+                ` : ""}
+                <button class="btn btn-primary" onclick="app.promptFinishExam()">
+                  ${ex.instantMode ? "Finalizar Sesión" : "Entregar Examen"}
+                </button>
+              </div>
+            </div>
+
+            <!-- CUERPO 2 COLUMNAS -->
+            <div class="exam-layout">
+              <div class="question-card">
+                <div class="question-meta-row">
+                  <span class="topic-pill">${TOPICS[q.topic]}</span>
+                  <button class="doubt-btn ${isDoubt ? "active" : ""}" onclick="app.toggleDoubt()">
+                    <span>${isDoubt ? "🚩 Marcada como Dudosa" : "🏳 Marcar Dudosa"}</span>
+                  </button>
+                </div>
+
+                <h2 class="question-text">${q.question}</h2>
+
+                ${isLocked ? this.renderInstantBanner(idx, userDisplayAns) : ""}
+
+                <!-- OPCIONES PERMUTADAS CON FISHER-YATES -->
+                <div class="options-list">
+                  ${order.map((origOptIdx, displayIdx) => {
+                    const letters = ["A", "B", "C", "D"];
+                    const optText = q.options[origOptIdx];
+                    let itemClasses = "option-item";
+                    let statusBadge = "";
+
+                    if (!isLocked) {
+                      if (userDisplayAns === displayIdx) itemClasses += " selected";
+                    } else {
+                      itemClasses += " locked";
+                      const isCorrectOption = origOptIdx === q.correct;
+                      const isUserSelected = displayIdx === userDisplayAns;
+
+                      if (isCorrectOption) {
+                        itemClasses += " state-correct";
+                        statusBadge = `<span class="option-status-icon">✓ Correcta</span>`;
+                      } else if (isUserSelected) {
+                        itemClasses += " state-incorrect";
+                        statusBadge = `<span class="option-status-icon">✕ Tu elección</span>`;
+                      } else {
+                        itemClasses += " state-dimmed";
+                      }
+                    }
+
+                    return `
+                      <div class="${itemClasses}" onclick="app.selectOption(${displayIdx})" role="button" tabindex="0">
+                        <div class="option-letter">${letters[displayIdx]}</div>
+                        <div class="option-content">${optText}</div>
+                        ${statusBadge}
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+
+                <!-- EXPLICACIÓN TEÓRICA INMEDIATA EN MODO 1 A 1 -->
+                ${isLocked ? `
+                  <div class="explanation-box">
+                    <div class="explanation-title">
+                      <span>📘 Explicación Teórica</span>
+                    </div>
+                    <div class="explanation-body">${q.explanation}</div>
+                  </div>
+                ` : ""}
+
+                <!-- BOTONES DE ACCIÓN Y NAVEGACIÓN -->
+                <div class="question-footer">
+                  <div>
+                    ${ex.instantMode ? (
+                      !isLocked ? `
+                        <button class="btn btn-secondary" onclick="app.skipAndRevealInstant()">
+                          Dejar en blanco y ver solución (0 pts)
+                        </button>
+                      ` : `<span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Respuesta corregida y bloqueada</span>`
+                    ) : (
+                      userDisplayAns !== null ? `
+                        <button class="btn btn-ghost" onclick="app.clearStandardAnswer()" style="text-decoration: underline; font-size: 0.82rem;">
+                          Dejar en blanco (0 pts)
+                        </button>
+                      ` : `<span style="font-size: 0.8rem; color: var(--text-muted);">Sin respuesta seleccionada</span>`
+                    )}
+                  </div>
+
+                  <div class="nav-btn-group">
+                    <button class="btn btn-secondary" onclick="app.prevQuestion()" ${idx === 0 ? "disabled" : ""}>
+                      ← Anterior
+                    </button>
+                    <button class="btn ${ex.instantMode && isLocked ? "btn-emerald" : "btn-primary"}" onclick="app.nextQuestion()">
+                      ${idx === ex.questions.length - 1 ? "Ver Resultados Finales →" : "Siguiente pregunta →"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PANEL LATERAL: NAVEGADOR DE PREGUNTAS -->
+              <aside class="sidebar-card">
+                <div class="sidebar-title">
+                  <span>Navegador</span>
+                  <span>${idx + 1}/${ex.questions.length}</span>
+                </div>
+
+                <div class="nav-grid">
+                  ${ex.questions.map((item, i) => {
+                    let cellClass = "nav-cell";
+                    if (i === idx) cellClass += " current";
+                    if (ex.doubtful[i]) cellClass += " has-doubt";
+
+                    if (ex.instantMode) {
+                      if (ex.locked[i]) {
+                        if (ex.answers[i] === null) cellClass += " cell-blank-locked";
+                        else if (this.isDisplayOptionCorrect(i, ex.answers[i])) cellClass += " cell-correct";
+                        else cellClass += " cell-incorrect";
+                      }
+                    } else {
+                      if (ex.answers[i] !== null) cellClass += " answered-std";
+                    }
+
+                    return `
+                      <button class="${cellClass}" onclick="app.goToQuestion(${i})" title="Ir a pregunta ${i + 1}">
+                        ${i + 1}
+                      </button>
+                    `;
+                  }).join("")}
+                </div>
+
+                <div class="legend-list">
+                  ${ex.instantMode ? `
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--emerald);"></span> Acierto (+0,50 pts)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--coral);"></span> Fallo (-0,16 pts)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--border-strong);"></span> En blanco / Vista (0 pts)</div>
+                  ` : `
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--primary);"></span> Respondida</div>
+                    <div class="legend-item"><span class="legend-dot" style="background: var(--bg-surface-alt); border: 1px solid var(--border-strong);"></span> Sin responder</div>
+                  `}
+                  <div class="legend-item"><span class="legend-dot" style="background: var(--amber); border-radius: 50%;"></span> Marcada como dudosa</div>
+                </div>
+
+                <div class="kbd-hint">
+                  <strong>Atajos de teclado:</strong><br>
+                  Teclas <kbd>1</kbd>-<kbd>4</kbd> o <kbd>A</kbd>-<kbd>D</kbd> para responder.<br>
+                  <kbd>→</kbd> o <kbd>Enter</kbd> para avanzar.
+                </div>
+              </aside>
+            </div>
+          </div>
+        `;
+
+        if (ex.timeLeft !== null) {
+          this.updateTimerUI();
+        }
+      },
+
+      renderInstantBanner(questionIdx, userDisplayAns) {
+        if (userDisplayAns === null) {
+          return `
+            <div class="instant-feedback-banner blank">
+              <span>○ 0,00 pts · Dejada en blanco (sin penalización)</span>
+              <span>Solución mostrada abajo</span>
+            </div>
+          `;
+        }
+        if (this.isDisplayOptionCorrect(questionIdx, userDisplayAns)) {
+          return `
+            <div class="instant-feedback-banner correct">
+              <span>✓ +0,50 pts · ¡Correcto!</span>
+              <span>Dominada</span>
+            </div>
+          `;
+        }
+        return `
+          <div class="instant-feedback-banner incorrect">
+            <span>✕ -0,16 pts · Incorrecto</span>
+            <span>Guardada en pendientes</span>
+          </div>
+        `;
+      },
+
+      // =========================================================================
+      // 9. FINALIZACIÓN Y RESULTADOS FINALES
+      // =========================================================================
+      promptFinishExam() {
+        const ex = this.exam;
+        if (!ex) return;
+
+        let unansweredCount = 0;
+        if (ex.instantMode) {
+          unansweredCount = ex.locked.filter(l => !l).length;
+        } else {
+          unansweredCount = ex.answers.filter(a => a === null).length;
+        }
+        const doubtfulCount = ex.doubtful.filter(Boolean).length;
+
+        this.openModal({
+          title: ex.instantMode ? "¿Finalizar sesión de Corrección Inmediata?" : "¿Entregar y corregir el examen?",
+          bodyHtml: `
+            ${unansweredCount > 0 ? `<p style="margin-bottom: 0.5rem;">Te quedan <strong>${unansweredCount} preguntas sin responder</strong> (contarán como 0,00 puntos).</p>` : `<p style="margin-bottom: 0.5rem;">Has revisado todas las preguntas de la sesión.</p>`}
+            ${doubtfulCount > 0 ? `<p>Tienes <strong>${doubtfulCount} preguntas marcadas como dudosas</strong>.</p>` : ""}
+          `,
+          confirmText: "Sí, ver resultados",
+          confirmClass: "btn-primary",
+          onConfirm: () => this.finalizeExam()
+        });
+      },
+
+      finalizeExam() {
+        const ex = this.exam;
+        if (!ex) return;
+        if (ex.timerId) clearInterval(ex.timerId);
+
+        let correct = 0;
+        let incorrect = 0;
+        let blank = 0;
+        let masteredInSession = 0;
+
+        const topicBreakdown = {
+          1: { correct: 0, incorrect: 0, blank: 0, total: 0 },
+          2: { correct: 0, incorrect: 0, blank: 0, total: 0 },
+          3: { correct: 0, incorrect: 0, blank: 0, total: 0 },
+          4: { correct: 0, incorrect: 0, blank: 0, total: 0 },
+          5: { correct: 0, incorrect: 0, blank: 0, total: 0 }
+        };
+
+        ex.questions.forEach((q, i) => {
+          const displayAns = ex.answers[i];
+          const wasAlreadyRecorded = ex.instantMode && ex.locked[i];
+          topicBreakdown[q.topic].total++;
+
+          if (displayAns === null) {
+            blank++;
+            topicBreakdown[q.topic].blank++;
+            if (!wasAlreadyRecorded) {
+              store.recordQuestionOutcome(q.topic, "blank");
+              store.markFailedOrPending(q.id);
+            }
+          } else if (this.isDisplayOptionCorrect(i, displayAns)) {
+            correct++;
+            topicBreakdown[q.topic].correct++;
+            if (!wasAlreadyRecorded) {
+              store.recordQuestionOutcome(q.topic, "correct");
+            }
+            if (store.removeFromFailed(q.id)) {
+              masteredInSession++;
+            }
+          } else {
+            incorrect++;
+            topicBreakdown[q.topic].incorrect++;
+            if (!wasAlreadyRecorded) {
+              store.recordQuestionOutcome(q.topic, "incorrect");
+              store.markFailedOrPending(q.id);
+            }
+          }
+        });
+
+        const scores = this.calculateScores(correct, incorrect, ex.questions.length);
+
+        const resultData = {
+          date: new Date().toISOString(),
+          modeId: ex.modeId,
+          modeName: ex.modeName,
+          total: ex.questions.length,
+          correct,
+          incorrect,
+          blank,
+          netPoints: scores.netPoints,
+          maxPossiblePoints: scores.maxPossiblePoints,
+          score10: scores.score10,
+          masteredInSession,
+          topicBreakdown,
+          questions: ex.questions,
+          optionOrders: ex.optionOrders,
+          answers: ex.answers,
+          doubtful: ex.doubtful
+        };
+
+        store.data.examsCompleted++;
+        store.data.history.push({
+          date: resultData.date,
+          modeId: resultData.modeId,
+          modeName: resultData.modeName,
+          total: resultData.total,
+          correct: resultData.correct,
+          incorrect: resultData.incorrect,
+          blank: resultData.blank,
+          netPoints: resultData.netPoints,
+          score10: resultData.score10
+        });
+        store.save();
+        store.saveActiveSession(null);
+
+        this.lastResult = resultData;
+        this.reviewFilter = "all";
+        this.view = "results";
+        this.renderResults();
+      },
+
+      renderResults() {
+        const res = this.lastResult;
+        if (!res) return;
+
+        let badgeText = "Aprobado";
+        let badgeStyle = "background: var(--primary-soft); color: var(--primary-text); border: 1px solid var(--primary-border);";
+        if (res.score10 < 5) {
+          badgeText = "Suspenso (< 5,00)";
+          badgeStyle = "background: var(--coral-soft); color: var(--coral-text); border: 1px solid var(--coral-border);";
+        } else if (res.score10 >= 9) {
+          badgeText = "Sobresaliente";
+          badgeStyle = "background: var(--emerald-soft); color: var(--emerald-text); border: 1px solid var(--emerald-border);";
+        } else if (res.score10 >= 7) {
+          badgeText = "Notable";
+          badgeStyle = "background: var(--emerald-soft); color: var(--emerald-text); border: 1px solid var(--emerald-border);";
+        }
+
+        const doubtfulTotal = res.doubtful.filter(Boolean).length;
+
+        const root = document.getElementById("appRoot");
+        root.innerHTML = `
+          <div class="animate-in">
+            <section class="results-hero">
+              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                <div>
+                  <div style="font-size: 0.78rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">${res.modeName}</div>
+                  <h1 style="font-size: 1.5rem; font-weight: 800;">Resultados y Revisión del Examen</h1>
+                </div>
+                <span style="padding: 0.35rem 0.9rem; border-radius: var(--radius-full); font-size: 0.82rem; font-weight: 800; ${badgeStyle}">
+                  ${badgeText}
+                </span>
+              </div>
+
+              <div class="results-grid">
+                <div class="final-score-box">
+                  <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem;">
+                    Nota Normalizada
+                  </div>
+                  <div class="final-score-num" style="color: ${res.score10 >= 5 ? "var(--emerald)" : "var(--coral)"};">
+                    ${res.score10.toFixed(2)}
+                  </div>
+                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">
+                    sobre 10,00 puntos
+                  </div>
+                  <div style="margin-top: 0.65rem; padding-top: 0.55rem; border-top: 1px solid var(--border-color); font-size: 0.8rem; font-weight: 700;">
+                    Puntuación bruta: <span style="color: ${res.netPoints >= 0 ? "var(--primary)" : "var(--coral)"};">${res.netPoints >= 0 ? "+" : ""}${res.netPoints.toFixed(2)}</span> / ${res.maxPossiblePoints.toFixed(2)} pts
+                  </div>
+                </div>
+
+                <div>
+                  <div class="breakdown-cards">
+                    <div class="mini-stat-box" style="border-color: var(--emerald-border); background: var(--emerald-soft);">
+                      <div style="font-size: 1.5rem; font-weight: 900; color: var(--emerald-text);">${res.correct}</div>
+                      <div style="font-size: 0.78rem; font-weight: 700; color: var(--emerald-text);">Aciertos (+0,50)</div>
+                      <div style="font-size: 0.75rem; font-family: var(--font-mono); margin-top: 0.2rem;">+${(res.correct * 0.5).toFixed(2)} pts</div>
+                    </div>
+
+                    <div class="mini-stat-box" style="border-color: var(--coral-border); background: var(--coral-soft);">
+                      <div style="font-size: 1.5rem; font-weight: 900; color: var(--coral-text);">${res.incorrect}</div>
+                      <div style="font-size: 0.78rem; font-weight: 700; color: var(--coral-text);">Fallos (-0,16)</div>
+                      <div style="font-size: 0.75rem; font-family: var(--font-mono); margin-top: 0.2rem;">-${(res.incorrect * 0.16).toFixed(2)} pts</div>
+                    </div>
+
+                    <div class="mini-stat-box">
+                      <div style="font-size: 1.5rem; font-weight: 900;">${res.blank}</div>
+                      <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary);">En Blanco (0,00)</div>
+                      <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 0.2rem;">0,00 pts</div>
+                    </div>
+                  </div>
+
+                  ${res.masteredInSession > 0 ? `
+                    <div style="margin-top: 0.85rem; padding: 0.65rem 0.9rem; border-radius: var(--radius-md); background: var(--emerald-soft); border: 1px solid var(--emerald-border); color: var(--emerald-text); font-size: 0.82rem; font-weight: 700;">
+                      🎯 ¡Has dominado ${res.masteredInSession} pregunta(s) que tenías pendientes y se han eliminado de tu lista de falladas!
+                    </div>
+                  ` : ""}
+
+                  <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.6rem;">
+                    ${[1, 2, 3, 4, 5].map(t => {
+                      const tb = res.topicBreakdown[t];
+                      if (tb.total === 0) return "";
+                      const pct = Math.round((tb.correct / tb.total) * 100);
+                      return `
+                        <div style="padding: 0.6rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-surface-alt); font-size: 0.78rem;">
+                          <div style="font-weight: 700; margin-bottom: 0.25rem;">Tema ${t} (${tb.correct}/${tb.total})</div>
+                          <div class="progress-track" style="height: 6px;">
+                            <div class="progress-fill" style="width: ${pct}%; background: ${pct >= 50 ? "var(--emerald)" : "var(--coral)"};"></div>
+                          </div>
+                        </div>
+                      `;
+                    }).join("")}
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.65rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary" onclick="app.showDashboard()">
+                  ← Volver al Menú Principal
+                </button>
+              </div>
+            </section>
+
+            <!-- FILTROS Y REVISIÓN DETALLADA -->
+            <section>
+              <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                <h2 class="section-heading" style="margin-bottom: 0;">Revisión Completa y Explicaciones Teóricas</h2>
+                <div class="filter-bar" style="margin-bottom: 0;">
+                  <button class="filter-btn ${this.reviewFilter === "all" ? "active" : ""}" onclick="app.setReviewFilter('all')">Todas (${res.total})</button>
+                  <button class="filter-btn ${this.reviewFilter === "incorrect" ? "active" : ""}" onclick="app.setReviewFilter('incorrect')">Falladas (${res.incorrect})</button>
+                  <button class="filter-btn ${this.reviewFilter === "blank" ? "active" : ""}" onclick="app.setReviewFilter('blank')">En Blanco (${res.blank})</button>
+                  <button class="filter-btn ${this.reviewFilter === "doubtful" ? "active" : ""}" onclick="app.setReviewFilter('doubtful')">Dudosas (${doubtfulTotal})</button>
+                  <button class="filter-btn ${this.reviewFilter === "correct" ? "active" : ""}" onclick="app.setReviewFilter('correct')">Aciertos (${res.correct})</button>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${this.renderReviewItems(res)}
+              </div>
+            </section>
+          </div>
+        `;
+      },
+
+      setReviewFilter(filter) {
+        this.reviewFilter = filter;
+        this.renderResults();
+      },
+
+      renderReviewItems(res) {
+        const letters = ["A", "B", "C", "D"];
+        const itemsHtml = res.questions.map((q, idx) => {
+          const order = res.optionOrders[idx];
+          const displayAns = res.answers[idx];
+          const isBlank = displayAns === null;
+          const isCorrect = !isBlank && order[displayAns] === q.correct;
+          const isDoubt = res.doubtful[idx];
+
+          if (this.reviewFilter === "correct" && !isCorrect) return "";
+          if (this.reviewFilter === "incorrect" && (isCorrect || isBlank)) return "";
+          if (this.reviewFilter === "blank" && !isBlank) return "";
+          if (this.reviewFilter === "doubtful" && !isDoubt) return "";
+
+          let statusPill = `<span style="padding: 0.25rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 800; background: var(--emerald-soft); color: var(--emerald-text); border: 1px solid var(--emerald-border);">✓ Acierto (+0,50)</span>`;
+          if (isBlank) {
+            statusPill = `<span style="padding: 0.25rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 800; background: var(--bg-surface-alt); color: var(--text-muted); border: 1px solid var(--border-strong);">○ En blanco (0,00)</span>`;
+          } else if (!isCorrect) {
+            statusPill = `<span style="padding: 0.25rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 800; background: var(--coral-soft); color: var(--coral-text); border: 1px solid var(--coral-border);">✕ Fallo (-0,16)</span>`;
+          }
+
+          return `
+            <article class="question-card">
+              <div class="question-meta-row">
+                <span class="topic-pill">Pregunta ${idx + 1} · ${TOPICS[q.topic]}</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  ${isDoubt ? `<span style="font-size: 0.75rem; font-weight: 700; color: var(--amber-text); background: var(--amber-soft); padding: 0.2rem 0.55rem; border-radius: var(--radius-sm);">🚩 Dudosa</span>` : ""}
+                  ${statusPill}
+                </div>
+              </div>
+
+              <h3 class="question-text" style="font-size: 1.02rem;">${q.question}</h3>
+
+              <div class="options-list">
+                ${order.map((origOptIdx, displayIdx) => {
+                  const optText = q.options[origOptIdx];
+                  let cls = "option-item locked";
+                  let icon = "";
+                  if (origOptIdx === q.correct) {
+                    cls += " state-correct";
+                    icon = `<span class="option-status-icon">✓ Correcta</span>`;
+                  } else if (displayIdx === displayAns) {
+                    cls += " state-incorrect";
+                    icon = `<span class="option-status-icon">✕ Tu respuesta</span>`;
+                  } else {
+                    cls += " state-dimmed";
+                  }
+
+                  return `
+                    <div class="${cls}" style="padding: 0.75rem 0.95rem;">
+                      <div class="option-letter">${letters[displayIdx]}</div>
+                      <div class="option-content" style="font-size: 0.88rem;">${optText}</div>
+                      ${icon}
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+
+              <div class="explanation-box">
+                <div class="explanation-title">📘 Explicación Teórica</div>
+                <div class="explanation-body">${q.explanation}</div>
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        return itemsHtml || `<div class="panel-card" style="text-align: center; color: var(--text-muted);">No hay preguntas en esta categoría de filtro.</div>`;
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", () => app.init());
+  </script>
+</body>
+</html>
