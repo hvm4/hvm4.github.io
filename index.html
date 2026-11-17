@@ -1256,6 +1256,86 @@
       transform: translateY(0);
     }
 
+    /* ==========================================================================
+       MATHEMATICAL TYPOGRAPHY & RENDERED FORMULAS
+       ========================================================================== */
+    .math {
+      font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman", Times, serif;
+      font-size: 1.04em;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .math-block {
+      display: block;
+      text-align: center;
+      margin: 0.55rem 0;
+      padding: 0.45rem 0.75rem;
+      background-color: var(--bg-surface-alt);
+      border-radius: var(--radius-sm);
+      white-space: normal;
+    }
+
+    .math strong {
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    .math em {
+      font-style: italic;
+    }
+
+    .math sup,
+    .math sub {
+      font-size: 0.75em;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+    }
+
+    .math sup {
+      top: -0.48em;
+    }
+
+    .math sub {
+      bottom: -0.24em;
+    }
+
+    .math-text {
+      font-family: var(--font-sans);
+      font-size: 0.92em;
+      font-style: normal;
+    }
+
+    .math-vec {
+      position: relative;
+      display: inline-block;
+    }
+
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 0.22em;
+      font-size: 0.88em;
+      line-height: 1.1;
+    }
+
+    .math-num {
+      border-bottom: 1px solid currentColor;
+      padding: 0 0.22em 0.1em;
+    }
+
+    .math-den {
+      padding: 0.12em 0.22em 0;
+    }
+
+    .math-radicand {
+      border-top: 1px solid currentColor;
+      padding: 0 0.15em;
+    }
+
     @media (max-width: 600px) {
       .question-card { padding: 1.15rem; }
       .q-text { font-size: 1.02rem; }
@@ -1354,14 +1434,14 @@
           <select id="select-timer" class="select-control" aria-label="Seleccionar tiempo límite">
             <option value="0">Sin límite</option>
             <option value="15">15 min</option>
-            <option value="25" selected>25 min</option>
-            <option value="30">30 min</option>
+            <option value="25">25 min</option>
+            <option value="30" selected>30 min</option>
             <option value="45">45 min</option>
           </select>
         </div>
       </div>
 
-      <!-- 4 Exam Modes -->
+      <!-- 5 Exam Modes -->
       <div class="modes-grid">
 
         <!-- Mode 1: Simulacro Ponderado -->
@@ -1390,32 +1470,32 @@
           </button>
         </article>
 
-        <!-- Mode 2: Preguntas No Vistas -->
+        <!-- Mode 2: Corrección Inmediata (1 a 1) -->
         <article class="mode-card">
           <div>
             <div class="mode-header">
-              <div class="mode-icon green">
+              <div class="mode-icon blue">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 8v4l3 3"></path>
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
                 </svg>
               </div>
               <div>
-                <h3 class="mode-title">Preguntas No Vistas</h3>
-                <p class="mode-desc">Practica exclusivamente preguntas inéditas que aún no te han salido en sesiones anteriores.</p>
+                <h3 class="mode-title">Corrección Inmediata (1 a 1)</h3>
+                <p class="mode-desc">Responde pregunta a pregunta con feedback instantáneo, explicación teórica y marcador en vivo.</p>
               </div>
             </div>
-            <div class="mode-meta" id="unseen-meta-chips">
-              <span class="meta-chip" id="chip-unseen-count">120 pendientes por salir</span>
-            </div>
-            <div id="unseen-complete-banner" class="celebration-box" style="display: none; margin-top: 0.65rem;">
-              ¡Enhorabuena! Has respondido las 120 preguntas del banco. Reinicia el ciclo para volver a empezar.
+            <div class="mode-meta">
+              <span class="meta-chip">20 preguntas</span>
+              <span class="meta-chip">Solución al instante</span>
+              <span class="meta-chip">+0.50 / −0.16</span>
             </div>
           </div>
-          <div id="unseen-action-area">
-            <button type="button" class="btn btn-success" style="width: 100%;" id="btn-start-unseen">
-              Practicar No Vistas (20)
-            </button>
+          <button type="button" class="btn btn-primary" id="btn-start-instant">
+            Iniciar Modo 1 a 1 (20)
+          </button>
+        </article>
+
+        <!-- Mode 3: Preguntas No Vistas -->
           </div>
         </article>
 
@@ -2757,7 +2837,7 @@
         options: [
           "Porque las superficies lambertianas absorben toda la luz incidente y la reemiten por fluorescencia térmica.",
           "Porque el vector mitad $\\mathbf{H}$ coincide siempre con la normal geométrica en cualquier ángulo de incidencia.",
-          "Porque la disminución del flujo por unidad de área proyectada ($\cos\theta_v$) cancela exactamente el aumento del área superficial vista en ángulos rasantes.",
+          "Porque la disminución del flujo por unidad de área proyectada ($\\cos\\theta_v$) cancela exactamente el aumento del área superficial vista en ángulos rasantes.",
           "Porque las fuentes de luz direccionales emiten fotones exclusivamente en la dirección normal a cada triángulo."
         ],
         correct: 2,
@@ -3330,7 +3410,7 @@
       history: [],
       settings: {
         instantMode: false,
-        timerMinutes: 25,
+        timerMinutes: 30,
         selectedTopic: 1,
         topicQuestionCount: 20
       },
@@ -3381,7 +3461,7 @@
         history: Array.isArray(parsed.history) ? parsed.history.slice(0, 50) : [],
         settings: {
           instantMode: Boolean(parsed.settings?.instantMode),
-          timerMinutes: Number(parsed.settings?.timerMinutes ?? 25),
+          timerMinutes: Number(parsed.settings?.timerMinutes ?? 30),
           selectedTopic: [1, 2, 3, 4, 5].includes(Number(parsed.settings?.selectedTopic)) ? Number(parsed.settings.selectedTopic) : 1,
           topicQuestionCount: [10, 20, 24].includes(Number(parsed.settings?.topicQuestionCount)) ? Number(parsed.settings.topicQuestionCount) : 20
         },
@@ -3402,8 +3482,202 @@
     }
 
     /* ========================================================================
-       4. UTILITIES: FISHER-YATES SHUFFLE, GRADING & HELPERS
+       4. UTILITIES: MATH RENDERER, FISHER-YATES SHUFFLE, GRADING & HELPERS
        ======================================================================== */
+    /**
+     * Extrae argumentos entre llaves balanceadas {...} tras un comando LaTeX
+     * (por ejemplo \frac{num}{den}, \sqrt{arg}, ^{sup}, _{sub}).
+     */
+    function replaceBalancedCommand(str, command, argCount, replacer) {
+      let result = "";
+      let idx = 0;
+
+      while (idx < str.length) {
+        const found = str.indexOf(command, idx);
+        if (found === -1) {
+          result += str.slice(idx);
+          break;
+        }
+
+        // Evitar coincidencias parciales cuando el comando empieza por barra invertida
+        if (command.startsWith("\\")) {
+          const nextCh = str[found + command.length] || "";
+          if (/[a-zA-Z]/.test(nextCh)) {
+            result += str.slice(idx, found + command.length);
+            idx = found + command.length;
+            continue;
+          }
+        }
+
+        let cursor = found + command.length;
+        const args = [];
+        let valid = true;
+
+        for (let a = 0; a < argCount; a++) {
+          while (cursor < str.length && /\s/.test(str[cursor])) {
+            cursor++;
+          }
+          if (str[cursor] !== "{") {
+            valid = false;
+            break;
+          }
+          let depth = 0;
+          const contentStart = cursor + 1;
+          while (cursor < str.length) {
+            if (str[cursor] === "{") depth++;
+            else if (str[cursor] === "}") {
+              depth--;
+              if (depth === 0) break;
+            }
+            cursor++;
+          }
+          if (depth !== 0) {
+            valid = false;
+            break;
+          }
+          args.push(str.slice(contentStart, cursor));
+          cursor++; // avanzar tras '}'
+        }
+
+        if (!valid) {
+          result += str.slice(idx, found + command.length);
+          idx = found + command.length;
+        } else {
+          result += str.slice(idx, found) + replacer(args);
+          idx = cursor;
+        }
+      }
+
+      return result;
+    }
+
+    /**
+     * Convierte el contenido interior de una expresión matemática LaTeX en HTML
+     * semántico y caracteres Unicode matemáticos reales.
+     */
+    function parseMathExpr(rawExpr) {
+      let expr = String(rawExpr)
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .trim();
+
+      // Recuperar posibles escapes accidentales \t o \f si proceden de cadenas sin doble barra
+      expr = expr
+        .replace(/\t(?=(?:heta|imes|ext|o\b|riangle|au))/g, "\\t")
+        .replace(/\f(?=(?:rac|phi|orall))/g, "\\f");
+
+      // Limpiar delimitadores \left y \right
+      expr = expr
+        .replace(/\\left\s*([(\[{|.])/g, "$1")
+        .replace(/\\right\s*([)\]}|.])/g, "$1");
+
+      // Texto recto dentro de fórmulas
+      expr = replaceBalancedCommand(expr, "\\text", 1, ([txt]) => `<span class="math-text">${txt}</span>`);
+      expr = replaceBalancedCommand(expr, "\\mathrm", 1, ([txt]) => `<span class="math-text">${txt}</span>`);
+
+      // Vectores, matrices y cuaterniones en negrita
+      expr = replaceBalancedCommand(expr, "\\mathbf", 1, ([v]) => `<strong>${v}</strong>`);
+      expr = replaceBalancedCommand(expr, "\\boldsymbol", 1, ([v]) => `<strong>${v}</strong>`);
+      expr = replaceBalancedCommand(expr, "\\vec", 1, ([v]) => `<strong class="math-vec">${v}</strong>`);
+      expr = replaceBalancedCommand(expr, "\\hat", 1, ([v]) => `<strong>${v}&#770;</strong>`);
+      expr = replaceBalancedCommand(expr, "\\bar", 1, ([v]) => `<span style="text-decoration:overline;">${v}</span>`);
+
+      // Fracciones y raíces cuadradas (soportan anidamiento)
+      expr = replaceBalancedCommand(expr, "\\frac", 2, ([num, den]) =>
+        `<span class="math-frac"><span class="math-num">${parseMathExpr(num)}</span><span class="math-den">${parseMathExpr(den)}</span></span>`
+      );
+      expr = expr.replace(/\\sqrt\[([^\]]+)\]\{([^{}]+)\}/g, (_, n, rad) =>
+        `<sup>${n}</sup>√<span class="math-radicand">${parseMathExpr(rad)}</span>`
+      );
+      expr = replaceBalancedCommand(expr, "\\sqrt", 1, ([rad]) =>
+        `√<span class="math-radicand">${parseMathExpr(rad)}</span>`
+      );
+
+      // Conjuntos numéricos
+      expr = expr
+        .replace(/\\mathbb\{R\}/g, "ℝ")
+        .replace(/\\mathbb\{N\}/g, "ℕ")
+        .replace(/\\mathbb\{Z\}/g, "ℤ");
+
+      // Mapa completo de letras griegas, operadores y símbolos matemáticos
+      const symbolMap = {
+        alpha: "α", beta: "β", gamma: "γ", delta: "δ", epsilon: "ε", varepsilon: "ε",
+        zeta: "ζ", eta: "η", theta: "θ", vartheta: "ϑ", iota: "ι", kappa: "κ",
+        lambda: "λ", mu: "μ", nu: "ν", xi: "ξ", pi: "π", rho: "ρ",
+        sigma: "σ", tau: "τ", upsilon: "υ", phi: "φ", varphi: "φ", chi: "χ",
+        psi: "ψ", omega: "ω",
+        Gamma: "Γ", Delta: "Δ", Theta: "Θ", Lambda: "Λ", Xi: "Ξ", Pi: "Π",
+        Sigma: "Σ", Phi: "Φ", Psi: "Ψ", Omega: "Ω",
+        times: "×", cdot: "·", div: "÷", pm: "±", mp: "∓", ast: "∗", star: "⋆", circ: "∘",
+        leq: "≤", le: "≤", geq: "≥", ge: "≥", neq: "≠", ne: "≠", approx: "≈", equiv: "≡", sim: "∼", propto: "∝",
+        rightarrow: "→", to: "→", leftarrow: "←", leftrightarrow: "↔", Rightarrow: "⇒", Leftrightarrow: "⇔",
+        in: "∈", notin: "∉", subset: "⊂", subseteq: "⊆", cup: "∪", cap: "∩", emptyset: "∅",
+        infty: "∞", partial: "∂", nabla: "∇", forall: "∀", exists: "∃",
+        int: "∫", iint: "∬", sum: "∑", prod: "∏",
+        lfloor: "⌊", rfloor: "⌋", lceil: "⌈", rceil: "⌉", degree: "°",
+        cos: "cos", sin: "sin", tan: "tan", arcsin: "arcsin", arccos: "arccos", arctan: "arctan",
+        log: "log", ln: "ln", exp: "exp", max: "max", min: "min", det: "det", lim: "lim"
+      };
+
+      expr = expr.replace(/\\([a-zA-Z]+)(?![a-zA-Z])/g, (match, cmd) => {
+        return Object.prototype.hasOwnProperty.call(symbolMap, cmd) ? symbolMap[cmd] : cmd;
+      });
+
+      // Superíndices y subíndices (con llaves y de un carácter)
+      expr = replaceBalancedCommand(expr, "^", 1, ([sup]) => `<sup>${sup}</sup>`);
+      expr = expr.replace(/\^([a-zA-Z0-9*+\-])/g, "<sup>$1</sup>");
+
+      expr = replaceBalancedCommand(expr, "_", 1, ([sub]) => `<sub>${sub}</sub>`);
+      expr = expr.replace(/_([a-zA-Z0-9+\-])/g, "<sub>$1</sub>");
+
+      // Poner en cursiva las variables escalares latinas de una sola letra fuera de etiquetas y de <strong>
+      const segments = expr.split(/(<[^>]+>)/g);
+      let strongDepth = 0;
+      let textDepth = 0;
+
+      expr = segments.map(seg => {
+        if (seg.startsWith("<")) {
+          if (/^<strong\b/i.test(seg)) strongDepth++;
+          else if (/^<\/strong>/i.test(seg)) strongDepth = Math.max(0, strongDepth - 1);
+          else if (/^<span class="math-text">/i.test(seg)) textDepth++;
+          else if (/^<\/span>/i.test(seg) && textDepth > 0) textDepth--;
+          return seg;
+        }
+        if (strongDepth === 0 && textDepth === 0) {
+          return seg.replace(/(?<![a-zA-Z0-9_&])([a-zA-Z])(?![a-zA-Z0-9_;])/g, "<em>$1</em>");
+        }
+        return seg;
+      }).join("");
+
+      return expr;
+    }
+
+    /**
+     * Renderizador matemático automático aplicado a enunciados, opciones y explicaciones
+     * antes de insertarlos en el DOM. Garantiza que nunca aparezca LaTeX crudo ($...$).
+     */
+    function renderMath(rawHtml) {
+      if (rawHtml === null || rawHtml === undefined) return "";
+      let output = String(rawHtml);
+
+      // 1. Fórmulas en bloque $$...$$
+      output = output.replace(/\$\$([\s\S]+?)\$\$/g, (_, mathContent) => {
+        return `<span class="math math-block">${parseMathExpr(mathContent)}</span>`;
+      });
+
+      // 2. Fórmulas en línea $...$
+      output = output.replace(/\$([^\$]+?)\$/g, (_, mathContent) => {
+        return `<span class="math">${parseMathExpr(mathContent)}</span>`;
+      });
+
+      // 3. Salvaguarda por si existiera algún macro LaTeX suelto sin delimitadores $
+      if (/\\(?:mathbf|vec|frac|sqrt|theta|alpha|beta|gamma|lambda|omega|Omega|Delta|times|cdot|rightarrow|to|leq|geq|neq|approx|infty|int|sum)\b/.test(output)) {
+        output = parseMathExpr(output);
+      }
+
+      return output;
+    }
+
     function fisherYatesShuffle(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -3669,6 +3943,26 @@
       launchExamSession("simulacro", "Simulacro Ponderado (20 preg.)", chosen);
     }
 
+    function startInstantPractice() {
+      // Modo destacado Corrección Inmediata (1 a 1): 20 preguntas equilibradas con feedback al instante
+      const seenSet = new Set(state.seenIds);
+      let chosen = [];
+      for (let t = 1; t <= 5; t++) {
+        const pool = QUESTIONS.filter(q => q.topic === t);
+        const unseenPool = fisherYatesShuffle(pool.filter(q => !seenSet.has(q.id)));
+        const seenPool = fisherYatesShuffle(pool.filter(q => seenSet.has(q.id)));
+        const picked = [...unseenPool, ...seenPool].slice(0, 4);
+        chosen.push(...picked);
+      }
+      chosen = fisherYatesShuffle(chosen);
+
+      const prevInstant = state.settings.instantMode;
+      state.settings.instantMode = true;
+      launchExamSession("instant", "Corrección Inmediata 1 a 1 (20 preg.)", chosen);
+      state.settings.instantMode = prevInstant;
+      saveState();
+    }
+
     function startUnseenExam() {
       const seenSet = new Set(state.seenIds);
       const unseen = fisherYatesShuffle(QUESTIONS.filter(q => !seenSet.has(q.id)));
@@ -3824,8 +4118,8 @@
       doubtBtn.classList.toggle("btn-warning-active", isDoubt);
       document.getElementById("doubt-btn-label").textContent = isDoubt ? "Marcada dudosa (M)" : "Marcar dudosa (M)";
 
-      // Statement
-      document.getElementById("q-statement").textContent = q.question;
+      // Statement (con renderizado matemático limpio)
+      document.getElementById("q-statement").innerHTML = renderMath(q.question);
 
       // Render 4 Shuffled Options
       const letters = ["A", "B", "C", "D"];
@@ -3850,7 +4144,7 @@
 
         btn.innerHTML = `
           <span class="option-letter">${letters[shuffledIdx]}</span>
-          <span class="option-text">${q.options[origIdx]}</span>
+          <span class="option-text">${renderMath(q.options[origIdx])}</span>
         `;
 
         btn.addEventListener("click", () => selectOption(shuffledIdx));
@@ -3861,7 +4155,7 @@
       const expBox = document.getElementById("q-explanation-box");
       if (isLocked) {
         expBox.style.display = "block";
-        document.getElementById("q-explanation-text").textContent = q.explanation;
+        document.getElementById("q-explanation-text").innerHTML = renderMath(q.explanation);
       } else {
         expBox.style.display = "none";
       }
@@ -4235,7 +4529,7 @@
           return `
             <div class="${cls}">
               <span style="font-family: var(--font-mono); font-weight: 700;">${letters[shuffledIdx]}.</span>
-              <span>${item.q.options[origIdx]}${tag}</span>
+              <span>${renderMath(item.q.options[origIdx])}${tag}</span>
             </div>
           `;
         }).join("");
@@ -4250,11 +4544,11 @@
                 ${doubtChip}
               </div>
             </div>
-            <div style="font-weight: 600; font-size: 1.02rem; margin-bottom: 0.75rem;">${item.q.question}</div>
+            <div style="font-weight: 600; font-size: 1.02rem; margin-bottom: 0.75rem;">${renderMath(item.q.question)}</div>
             <div class="review-options">${optionsHtml}</div>
             <div class="explanation-box" style="margin-top: 0.75rem;">
               <div class="explanation-title">Explicación Teórica</div>
-              <div class="explanation-body">${item.q.explanation}</div>
+              <div class="explanation-body">${renderMath(item.q.explanation)}</div>
             </div>
           </article>
         `;
@@ -4336,6 +4630,7 @@
 
       // Mode launch buttons
       document.getElementById("btn-start-simulacro").addEventListener("click", startSimulacro);
+      document.getElementById("btn-start-instant").addEventListener("click", startInstantPractice);
       document.getElementById("btn-start-review").addEventListener("click", startReviewExam);
       document.getElementById("btn-start-topic").addEventListener("click", startTopicExam);
 
@@ -4407,6 +4702,7 @@
         if (!lastCompletedResult) return;
         const mode = lastCompletedResult.modeKey;
         if (mode === "simulacro") startSimulacro();
+        else if (mode === "instant") startInstantPractice();
         else if (mode === "unseen") startUnseenExam();
         else if (mode === "review") startReviewExam();
         else if (mode === "topic") startTopicExam();
