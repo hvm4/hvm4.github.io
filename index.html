@@ -1495,11 +1495,40 @@
           </button>
         </article>
 
-        <!-- Mode 3: Preguntas No Vistas -->
+        <!-- Mode 3: Preguntas No Vistas (Sin Salir) -->
+        <article class="mode-card">
+          <div>
+            <div class="mode-header">
+              <div class="mode-icon green">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v4"></path>
+                  <path d="M12 18v4"></path>
+                  <path d="M4.93 4.93l2.83 2.83"></path>
+                  <path d="M16.24 16.24l2.83 2.83"></path>
+                  <path d="M2 12h4"></path>
+                  <path d="M18 12h4"></path>
+                  <path d="M4.93 19.07l2.83-2.83"></path>
+                  <path d="M16.24 7.76l2.83-2.83"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="mode-title">Preguntas No Vistas (Sin Salir)</h3>
+                <p class="mode-desc">Practica exclusivamente con preguntas del banco de 120 que aún no te han salido. Compatible con el interruptor de Corrección Inmediata (1 a 1).</p>
+              </div>
+            </div>
+            <div class="mode-meta">
+              <span class="meta-chip" id="chip-unseen-count">Quedan 120 sin salir</span>
+              <span class="meta-chip">Hasta 20 preg.</span>
+              <span class="meta-chip">Nota escalada a 10</span>
+            </div>
+            <div class="celebration-box" id="unseen-complete-banner" style="display: none; margin-top: 0.75rem;">
+              ¡Enhorabuena! Ya has completado las 120 preguntas del banco sin repeticiones.
+            </div>
           </div>
+          <div id="unseen-action-area"></div>
         </article>
 
-        <!-- Mode 3: Repaso de Falladas y Dudosas -->
+        <!-- Mode 4: Repaso de Falladas y Dudosas -->
         <article class="mode-card">
           <div>
             <div class="mode-header">
@@ -3824,7 +3853,7 @@
       document.getElementById("btn-start-topic").textContent = `Practicar Tema (${topicCount})`;
 
       // Unseen mode card state
-      document.getElementById("chip-unseen-count").textContent = `${pendingCount} pendientes por salir`;
+      document.getElementById("chip-unseen-count").textContent = `Quedan ${pendingCount} sin salir`;
       const unseenBanner = document.getElementById("unseen-complete-banner");
       const unseenActionArea = document.getElementById("unseen-action-area");
 
@@ -3832,7 +3861,7 @@
         unseenBanner.style.display = "block";
         unseenActionArea.innerHTML = `
           <button type="button" class="btn btn-primary" style="width: 100%;" id="btn-reset-cycle-card">
-            Reiniciar ciclo de ${totalBank} preguntas
+            Reiniciar ciclo (0 / ${totalBank})
           </button>
         `;
         document.getElementById("btn-reset-cycle-card").addEventListener("click", promptResetSeenCycle);
